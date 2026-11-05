@@ -14,6 +14,7 @@ from ..geometry import (
     polygons,
     region,
     ring_array,
+    rotate_ring,
 )
 from ..model import Job, Operation
 from .base import PathBuilder, Toolpath, depth_levels, flute_warning
@@ -101,7 +102,7 @@ def lead_paths(ring: np.ndarray, kind: str, length: float, fits):
     return None
 
 
-def cut_ring(builder, ring, levels, ramp_length, tab_count, tab_length, tab_thickness, lead=None):
+def cut_ring(builder, ring, levels, ramp_length, tab_count, tab_length, tab_thickness, lead=None, keep_down=False, spiral=0.0):
     total = path_length(ring)
     ramp = min(ramp_length, total / 2) if ramp_length > 0 else 0.0
     bottom = levels[-1]
@@ -112,17 +113,29 @@ def cut_ring(builder, ring, levels, ramp_length, tab_count, tab_length, tab_thic
     for start, end in tabs:
         stations.extend([start, end])
     dense = insert_stations(ring, stations)
+    if spiral > 0:
+        laps = max(math.ceil(-bottom / spiral - 1e-9), 1)
+        builder.travel(dense[0, 0], dense[0, 1])
+        builder.enter(0.0)
+        for lap in range(laps):
+            _lap(builder, dense, bottom * lap / laps, bottom * (lap + 1) / laps, total, tabs, tab_z)
+        _lap(builder, dense, bottom, bottom, 0.0, tabs, tab_z)
+        return
     if lead is not None:
         lead_in, lead_out = lead
-        for level in levels:
-            builder.travel(lead_in[0, 0], lead_in[0, 1])
-            builder.enter(level)
-            for x, y in lead_in[1:]:
-                builder.cut(x, y, level)
+        for index, level in enumerate(levels):
+            if index == 0 or not keep_down:
+                builder.travel(lead_in[0, 0], lead_in[0, 1])
+                builder.enter(level)
+                for x, y in lead_in[1:]:
+                    builder.cut(x, y, level)
+            else:
+                builder.cut(dense[0, 0], dense[0, 1], level)
             _lap(builder, dense, level, level, 0.0, tabs, tab_z)
-            for x, y in lead_out[1:]:
-                builder.cut(x, y, level)
-            builder.retract()
+            if index == len(levels) - 1 or not keep_down:
+                for x, y in lead_out[1:]:
+                    builder.cut(x, y, level)
+                builder.retract()
         return
     builder.travel(dense[0, 0], dense[0, 1])
     top = 0.0
@@ -141,13 +154,52 @@ def cut_ring(builder, ring, levels, ramp_length, tab_count, tab_length, tab_thic
         _lap(builder, dense, bottom, bottom, 0.0, tabs, tab_z, stop=ramp)
 
 
-def cut_open(builder, points, levels):
+def cut_open(builder, points, levels, keep_down=False, spiral=0.0):
+    if spiral > 0:
+        bottom = levels[-1]
+        passes = max(math.ceil(-bottom / spiral - 1e-9), 1)
+        total = path_length(points)
+        path = points
+        builder.travel(path[0, 0], path[0, 1])
+        builder.enter(0.0)
+        for index in range(passes):
+            upper, lower = bottom * index / passes, bottom * (index + 1) / passes
+            along = 0.0
+            for (x0, y0), (x1, y1) in zip(path[:-1], path[1:]):
+                along += math.hypot(x1 - x0, y1 - y0)
+                builder.cut(x1, y1, upper + (lower - upper) * along / total)
+            path = path[::-1]
+        for x, y in path[1:]:
+            builder.cut(x, y, bottom)
+        builder.retract()
+        return
+    if keep_down:
+        path = points
+        builder.travel(path[0, 0], path[0, 1])
+        for index, level in enumerate(levels):
+            if index == 0:
+                builder.enter(level)
+            else:
+                builder.cut(path[0, 0], path[0, 1], level)
+            for x, y in path[1:]:
+                builder.cut(x, y, level)
+            path = path[::-1]
+        builder.retract()
+        return
     for level in levels:
         builder.travel(points[0, 0], points[0, 1])
         builder.enter(level)
         for x, y in points[1:]:
             builder.cut(x, y, level)
         builder.retract()
+
+
+def last_pass(builder, ring, rough_rings, bottom, tab_count, tab_length, tab_thickness):
+    partner = min(rough_rings, key=lambda r: float(np.hypot(*(r - ring[0]).T).min()))
+    home = partner[0]
+    rotated = rotate_ring(ring, home[0], home[1])
+    approach = (np.array([home, rotated[0]]), np.array([rotated[0], home]))
+    cut_ring(builder, rotated, [bottom], 0.0, tab_count, tab_length, tab_thickness, approach)
 
 
 def build_profile(job: Job, op: Operation) -> list[Toolpath]:
@@ -163,6 +215,9 @@ def build_profile(job: Job, op: Operation) -> list[Toolpath]:
     tab_thickness = float(params.get("tab_thickness", 0.0))
     lead_kind = params.get("lead", "none")
     lead_length = float(params.get("lead_length") or 0.0)
+    keep_down = bool(params.get("keep_down", False))
+    spiral = tool.stepdown if params.get("spiral") else 0.0
+    finish = float(params.get("finish_allowance") or 0.0)
 
     vectors = job.vectors_for(op.vector_ids)
     path = Toolpath(op.id, op.name or "Profile", tool)
@@ -175,7 +230,13 @@ def build_profile(job: Job, op: Operation) -> list[Toolpath]:
 
     levels = depth_levels(depth, tool.stepdown)
     builder = PathBuilder(tool, job.safe_z)
-    offset = 0.0 if side == "on" else tool.radius + allowance
+    if finish > 0 and side == "on":
+        path.warnings.append("A last pass needs a side. It was skipped for a cut on the line.")
+        finish = 0.0
+    if finish > 0 and depth >= job.material.thickness and tab_count == 0:
+        path.warnings.append("This cut goes through without tabs, so the part may move before the last pass.")
+    offset = 0.0 if side == "on" else tool.radius + allowance + finish
+    final = offset - finish
     closed = [v for v in vectors if v.closed]
     open_vectors = [v for v in vectors if not v.closed]
 
@@ -185,6 +246,11 @@ def build_profile(job: Job, op: Operation) -> list[Toolpath]:
     if leading and side == "on":
         path.warnings.append("Leads need a side. They were skipped for a cut on the line.")
         leading = False
+    if spiral and leading:
+        path.warnings.append("A continuous ramp replaces leads, so the leads were skipped.")
+        leading = False
+    if spiral and ramp > 0:
+        ramp = 0.0
     if leading and ramp > 0:
         path.warnings.append("Leads replace the ramp, so the ramp was ignored.")
         ramp = 0.0
@@ -205,9 +271,12 @@ def build_profile(job: Job, op: Operation) -> list[Toolpath]:
         path.warnings.append("Open vectors can only be cut on the line. They were skipped.")
 
     skipped = False
+    finish_rings = offset_rings(shape, side, final, climb) if finish > 0 and rings else []
+    finish_depths = containment_depths(finish_rings) if finish_rings else []
+    done: list[np.ndarray] = []
     if rings:
         depths = containment_depths(rings)
-        for level_index in sorted(set(depths), reverse=True):
+        for level_index in sorted(set(depths) | set(finish_depths), reverse=True):
             group = [r for r, d in zip(rings, depths) if d == level_index]
             for ring in nearest_order(group, lambda r: r[0]):
                 lead = None
@@ -217,12 +286,17 @@ def build_profile(job: Job, op: Operation) -> list[Toolpath]:
                     if lead is None and not skipped:
                         skipped = True
                         path.warnings.append("A lead did not fit at one or more shapes. Those shapes plunge on the line.")
-                cut_ring(builder, ring, levels, ramp, tab_count, tab_length, tab_thickness, lead)
+                cut_ring(builder, ring, levels, ramp, tab_count, tab_length, tab_thickness, lead, keep_down, spiral)
                 builder.retract()
+                done.append(ring)
+            for ring, ring_depth in zip(finish_rings, finish_depths):
+                if ring_depth == level_index and done:
+                    last_pass(builder, ring, done, levels[-1], tab_count, tab_length, tab_thickness)
+                    builder.retract()
 
     if side == "on":
         for vector in open_vectors:
-            cut_open(builder, np.asarray(vector.points, dtype=float), levels)
+            cut_open(builder, np.asarray(vector.points, dtype=float), levels, keep_down, spiral)
 
     builder.retract()
     path.moves = builder.moves

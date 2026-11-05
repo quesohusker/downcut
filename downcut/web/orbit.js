@@ -1,7 +1,7 @@
 'use strict';
 
 window.orbit = (() => {
-  const view = { canvas: null, gl: null, program: null, count: 0, yaw: -0.6, pitch: 0.75, zoom: 1.5, span: 1, drag: null };
+  const view = { canvas: null, gl: null, program: null, buffers: {}, count: 0, yaw: -0.6, pitch: 0.75, zoom: 1.5, span: 1, drag: null };
 
   const VERTEX = `#version 300 es
 in vec3 position;
@@ -115,7 +115,7 @@ void main() {
     canvas.dataset.bound = '1';
   }
 
-  function load(canvas, surface, thickness) {
+  function load(canvas, surface, thickness, floor = null) {
     view.canvas = canvas;
     if (!canvas.dataset.bound) bind(canvas);
     const gl = view.gl || canvas.getContext('webgl2', { antialias: true });
@@ -132,6 +132,9 @@ void main() {
     }
     const bytes = Uint8Array.from(atob(surface.heights), (c) => c.charCodeAt(0));
     const heights = new Float32Array(bytes.buffer);
+    if (floor !== null) {
+      for (let at = 0; at < heights.length; at++) heights[at] = Math.max(heights[at], floor);
+    }
     const { nx, ny, step } = surface;
     const positions = new Float32Array(nx * ny * 3);
     const normals = new Float32Array(nx * ny * 3);
@@ -161,7 +164,8 @@ void main() {
       }
     }
     const attribute = (name, data) => {
-      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+      view.buffers[name] = view.buffers[name] || gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, view.buffers[name]);
       gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
       const where = gl.getAttribLocation(view.program, name);
       gl.enableVertexAttribArray(where);
@@ -169,7 +173,8 @@ void main() {
     };
     attribute('position', positions);
     attribute('normal', normals);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
+    view.buffers.index = view.buffers.index || gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, view.buffers.index);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
     gl.uniform1f(gl.getUniformLocation(view.program, 'thickness'), Math.max(thickness, 0.001));
     view.count = indices.length;

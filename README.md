@@ -41,16 +41,24 @@ The builds are not signed, so your computer will warn you the first time:
 - Layers, rulers, guides, grid and smart snapping, and dimensions
 - Grid and circular arrays, copies along a path, and true-shape nesting
 - A vector checker for open shapes, overlaps, and duplicates
+- Art cleanup that finds stacked copies, lines on top of lines, and tiny specks, for you to review and remove
 - Import SVG, DXF, PDF, AI, and EPS. Export SVG and DXF
 
 **Toolpaths**
-- Profile with tabs, ramps, and leads
-- Pocket with islands, helix or ramp entry, and a finish pass
+- Profile with tabs, ramps, leads, a continuous ramp around the vector, and a full-depth last pass
+- Pocket with islands, helix or ramp entry, a finish pass, and rest machining with a smaller tool
+- Keep the tool down between depth passes
 - Drill with pecking
 - V-carve, including flat-bottom carving with a clearing tool
 - Chamfer, fluting, and raised prism
 - Auto-inlay and V-carve inlay
 - Merged toolpaths, toolpath arrays, templates, and tiling for jobs larger than your bed
+
+**Preview and setup**
+- Inches or millimeters, with metric starter tools
+- XY zero at any corner or the sheet center
+- Mouse wheel zoom in 2D and 3D
+- Step through depth passes one at a time
 
 **Output**
 - Built-in GRBL, Mach3 and Mach4, and LinuxCNC posts

@@ -10,7 +10,7 @@ const FORM_TITLES = {
   path: 'Path and Boundary',
   arrays: 'Arrays',
   nest: 'Nesting',
-  check: 'Check and Export',
+  check: 'Check, Clean Up, Export',
 };
 
 function openDock(side) {
@@ -28,6 +28,12 @@ function openForm(name) {
 }
 
 function closeForm() {
+  if (state.form === 'check') {
+    state.scan = null;
+    state.scanMarks = [];
+    $('#scan-results').replaceChildren();
+    draw();
+  }
   state.form = null;
   $('#drawing-home').hidden = false;
   $('#form-host').hidden = true;

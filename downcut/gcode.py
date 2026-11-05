@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 
 from .arcfit import fit_arcs
-from .model import MM_PER_IN, Job
+from .model import MM_PER_IN, XY_ORIGINS, Job
 from .ppfile import PpPost, parse_pp, render_pp
 from .toolpaths.base import RAPID, Toolpath
 
@@ -35,7 +35,9 @@ class GcodeFile:
 
 
 def _number(value: float, decimals: int) -> str:
-    text = f"{value:.{decimals}f}".rstrip("0").rstrip(".")
+    text = f"{value:.{decimals}f}"
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
     return "0" if text in ("", "-0") else text
 
 
@@ -48,10 +50,8 @@ def _slug(text: str) -> str:
 
 
 def origin_shift(job: Job) -> tuple[float, float, float]:
-    if job.xy_origin == "center":
-        ox, oy = job.material.width / 2, job.material.height / 2
-    else:
-        ox, oy = 0.0, 0.0
+    fx, fy = XY_ORIGINS.get(job.xy_origin, (0.0, 0.0))
+    ox, oy = job.material.width * fx, job.material.height * fy
     oz = job.material.thickness if job.z_zero == "bottom" else 0.0
     return ox, oy, oz
 

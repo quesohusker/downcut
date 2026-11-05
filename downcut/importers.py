@@ -5,6 +5,7 @@ import math
 
 import ezdxf
 import numpy as np
+from ezdxf import recover
 from ezdxf.path import make_path
 from svgelements import SVG, Arc, Close, CubicBezier, Line, Move, Path, QuadraticBezier, Shape
 
@@ -14,6 +15,7 @@ from .model import MM_PER_IN, Vector
 from .pdfimport import import_pdf
 
 PX_MM = MM_PER_IN / 96.0
+CLOSE_GAP = 0.01
 
 
 def _curve_points(segment) -> list[tuple[float, float]]:
@@ -30,7 +32,9 @@ def _finish(paths: list[tuple[list[tuple[float, float]], bool]]) -> list[Vector]
         for point in points[1:]:
             if math.dist(point, cleaned[-1]) > 1e-7:
                 cleaned.append(point)
-        if closed and len(cleaned) > 1 and math.dist(cleaned[0], cleaned[-1]) < 1e-7:
+        if len(cleaned) > 3 and math.dist(cleaned[0], cleaned[-1]) <= CLOSE_GAP:
+            closed = True
+        if closed and len(cleaned) > 1 and math.dist(cleaned[0], cleaned[-1]) <= CLOSE_GAP:
             cleaned.pop()
         minimum = 3 if closed else 2
         if len(cleaned) >= minimum:
@@ -78,12 +82,16 @@ def import_svg(text: str) -> list[Vector]:
                 current.extend(_curve_points(segment))
         flush(False)
     scaled = [([(x * PX_MM, y * PX_MM) for x, y in pts], closed) for pts, closed in paths]
-    return _to_lower_left(_finish(scaled), flip=True)
+    return _to_lower_left(join_open(_finish(scaled)), flip=True)
 
 
-def import_dxf(text: str, fallback_units: str = "mm") -> list[Vector]:
-    document = ezdxf.read(io.StringIO(text))
-    code = document.header.get("$INSUNITS", 0)
+def import_dxf(source, fallback_units: str = "mm") -> list[Vector]:
+    data = source.encode("utf-8", "replace") if isinstance(source, str) else source
+    try:
+        document, _ = recover.read(io.BytesIO(data))
+    except (ezdxf.DXFError, ValueError) as error:
+        raise ValueError("That file could not be read as a DXF.") from error
+    code = 0 if document.dxfversion <= "AC1009" else document.header.get("$INSUNITS", 0)
     if code == 1:
         scale = MM_PER_IN
     elif code == 4:
@@ -116,7 +124,7 @@ def import_binary(name: str, data: bytes, fallback_units: str = "mm") -> list[Ve
     if lowered.endswith(".svg"):
         return import_svg(data.decode("utf-8", "replace"))
     if lowered.endswith(".dxf"):
-        return import_dxf(data.decode("utf-8", "replace"), fallback_units)
+        return import_dxf(data, fallback_units)
     if lowered.endswith(".pdf"):
         return import_outline(import_pdf(data))
     if lowered.endswith(".ai"):

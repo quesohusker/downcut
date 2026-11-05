@@ -18,19 +18,20 @@ Downcut is free 2D and V-carve CAM for CNC routers. This guide covers every part
 9. [Edit vectors](#edit-vectors)
 10. [Offset and layout](#offset-and-layout)
 11. [Layers and keep-out zones](#layers-and-keep-out-zones)
-12. [Toolpaths](#toolpaths)
-13. [Toolpath types](#toolpath-types)
-14. [Inlays](#inlays)
-15. [Tool database](#tool-database)
-16. [Preview](#preview)
-17. [Save toolpaths](#save-toolpaths)
-18. [The G-code checker](#the-g-code-checker)
-19. [Machine posts and Vectric files](#machine-posts-and-vectric-files)
-20. [Tiling](#tiling)
-21. [Setup sheet](#setup-sheet)
-22. [File types](#file-types)
-23. [Keyboard shortcuts](#keyboard-shortcuts)
-24. [Troubleshooting](#troubleshooting)
+12. [Clean up art](#clean-up-art)
+13. [Toolpaths](#toolpaths)
+14. [Toolpath types](#toolpath-types)
+15. [Inlays](#inlays)
+16. [Tool database](#tool-database)
+17. [Preview](#preview)
+18. [Save toolpaths](#save-toolpaths)
+19. [The G-code checker](#the-g-code-checker)
+20. [Machine posts and Vectric files](#machine-posts-and-vectric-files)
+21. [Tiling](#tiling)
+22. [Setup sheet](#setup-sheet)
+23. [File types](#file-types)
+24. [Keyboard shortcuts](#keyboard-shortcuts)
+25. [Troubleshooting](#troubleshooting)
 
 ## Install and start
 
@@ -88,10 +89,10 @@ Job Setup opens when you start an empty job. You can also open it with the box i
 
 | Field | Meaning |
 |---|---|
-| Width, Height, Thickness | Material size. A new job starts at 24 x 18 x 0.75 in |
-| Units | Inches or millimeters |
+| Width, Height, Thickness | Material size. A new inch job starts at 24 x 18 x 0.75 in. A new metric job starts at 600 x 400 x 18 mm |
+| Units | Inches or millimeters. Downcut remembers your choice for new jobs. The Units box in the top bar sets the same thing |
 | Z zero | Material top, or the spoilboard |
-| XY zero | Lower left corner, or sheet center |
+| XY zero | Any of the four corners, or sheet center. A red and green marker shows the spot on the sheet. Rulers, position readouts, and G-code all count from it |
 | Safe Z | Height for rapid moves. Clamps must sit below this |
 | Spoilboard allowance | How far a cut may pass through the bottom of the material |
 | Machine | Bed size from an imported tool database. Downcut warns if the sheet is larger |
@@ -100,8 +101,8 @@ Job Setup opens when you start an empty job. You can also open it with the box i
 
 ## Move around the sheet
 
-- **Pan:** scroll, or hold Space and drag, or drag with the middle button.
-- **Zoom:** pinch on a trackpad, or hold Ctrl or Cmd and scroll.
+- **Zoom:** roll the mouse wheel, pinch on a trackpad, or press the **+** and **-** buttons. The wheel zooms at the pointer. On a trackpad, a two-finger scroll up or down zooms.
+- **Pan:** hold Space and drag, drag with the middle or right button, or scroll sideways.
 - **Fit:** press Fit, or use **View, Fit to sheet**.
 - **Guides:** drag from a ruler onto the sheet. Drag a guide back to the ruler to remove it.
 - **Snap:** Snap catches nodes, centers, midpoints, and guides. Grid snaps to the step you enter.
@@ -119,9 +120,9 @@ Job Setup opens when you start an empty job. You can also open it with the box i
 | Curve | C | Works like Polyline. The curve passes through each point |
 | Arc | A | Click the start, the end, then a point on the arc |
 | Text | T | Opens the Text form |
-| Dimension | M | Click two points. Remove one in Check and Export |
+| Dimension | M | Click two points. Remove one in Check, Clean Up, Export |
 
-**Import art** reads SVG, DXF, PDF, AI, and EPS. Downcut places the art at the center of the sheet.
+**Import art** reads SVG, DXF, PDF, AI, and EPS. Downcut places the art at the center of the sheet, and the status bar shows the imported size. Check that size. Old R12 DXF files carry no units, so Downcut reads them in the job's units.
 
 - PDF text must be converted to outlines first.
 - AI files must be saved as PDF compatible.
@@ -175,7 +176,7 @@ Edits keep toolpaths attached where they can, so toolpaths follow your changes.
 - **Arrays:** make grid or circular copies. Rotate each copy is optional.
 - **Path and Boundary:** select a vector and press **Set as path**. Then select art and use **Copies along path** or **Trim to boundary**.
 - **Nesting:** select parts and press **Nest selected parts**. Set the gap to at least your tool diameter. Parts can nest inside holes and avoid keep-out zones. A part that does not fit stays where it was.
-- **Check vectors:** finds open vectors, crossings, duplicates, zero-length spans, and tiny shapes. Click a row to select the vector.
+- **Check vectors:** finds open vectors, crossings, duplicates, zero-length spans, and tiny shapes. Click a row to select the vector. For a bigger sweep, see [Clean up art](#clean-up-art).
 
 ## Layers and keep-out zones
 
@@ -188,6 +189,31 @@ New vectors go on the active layer. Pick it in the Layers tab or at the top righ
 - **Keep-out** marks closed vectors on the layer as no-cut zones.
 
 Nesting avoids keep-out zones, and the checker blocks any cut that enters one, allowing for the tool radius. Toolpaths do not route around them. Rapids may still pass over them, so clamps must sit below Safe Z.
+
+## Clean up art
+
+Art from other programs often carries junk: two copies stacked on each other, lines that lap over a shape, and small specks left by a trace. Junk costs you real time. A stacked copy can erase its own cut, because Downcut treats a shape inside a shape as a hole.
+
+Open **Check, Clean Up, Export** with the check icon, then press **Find problems**. Downcut checks all vectors on visible layers.
+
+| Field | Meaning |
+|---|---|
+| Tiny size | A vector smaller than this in width and height counts as tiny |
+| Overlap tolerance | Two lines closer than this count as on top of each other |
+
+It reports three groups:
+
+| Group | What it finds | What you can do |
+|---|---|---|
+| Copies and lines on top of others | Exact copies in any direction or start point, near copies, and open lines that sit on another vector | **Remove them** keeps one copy |
+| Tiny shapes | Tiny rectangles, tiny shapes, tiny lines, and thin slivers | **Remove them** |
+| Overlapping spans | Vectors that share part of a path | **Trim open lines** cuts the shared part from an open line. Closed shapes stay as they are. Weld them if they should be one shape |
+
+Orange circles mark each item on the sheet. Click a row to zoom to it. **Select them** selects a whole group, so you can look before you remove. **Undo** restores anything you removed.
+
+Review before you remove. A tiny shape can be real detail. On a 6 in test carving, 170 shapes came in under 0.5 mm, and many repeat in a pattern, so they may be real marks in the art.
+
+The check is plain geometry. It runs on your machine, needs no account, and gives the same answer each time.
 
 ## Toolpaths
 
@@ -218,11 +244,14 @@ Cuts outside, inside, or on a line. Set the depth, allowance, and climb cut. Hol
 
 - **Ramp length** ramps into the cut along the path.
 - **Lead in and out** starts the cut off the part, with an arc or a line. Leads work on closed shapes and replace the ramp.
-- **Tabs** hold parts in place. Set the count, length, and thickness.
+- **Keep tool down between passes** stays in the cut from one depth pass to the next, in place of a lift to clearance. Open lines cut back and forth.
+- **Continuous ramp around the vector** spirals down the whole way, then makes one flat lap at the bottom. The drop per lap is the tool's stepdown. It replaces passes, ramps, and leads. Open lines ramp there and back.
+- **Last pass stock** leaves this much on the wall during the depth passes, then takes it off in one full-depth lap. Use it for a clean wall with no pass lines. On a through cut, use tabs, because the part may move on that last lap.
+- **Tabs** hold parts in place. Set the count, length, and thickness. Tabs work with all of the options above.
 
 ### Pocket
 
-Clears an area and leaves islands. Entry can be Plunge, Ramp, or Helix. A helix that does not fit falls back to a ramp. **Finish pass stock** roughs short of the wall, then takes a last lap.
+Clears an area and leaves islands. **Keep tool down between passes** stays in the cut from one level to the next. **Smaller tool for tight spots** adds rest machining: a smaller end mill cuts only what the main tool could not reach, such as inside corners. It saves as its own file, with its own tool change. Entry can be Plunge, Ramp, or Helix. A helix that does not fit falls back to a ramp. **Finish pass stock** roughs short of the wall, then takes a last lap.
 
 ### V-carve
 
@@ -257,7 +286,7 @@ Open it with **Machine, Tool database** or the Tools button in Job Setup.
 
 ![Tool database](images/guide-tools.jpg)
 
-Downcut includes 8 tools with starting values. Replace them with your own numbers. **Add a copy** duplicates a tool. Delete is blocked while a toolpath uses the tool. Filter by material and machine. The filter also limits the tools shown in toolpath forms. Tools you import or add are kept in your browser's storage.
+Downcut includes 16 tools with starting values, 8 inch and 8 metric. A new toolpath picks a tool that matches the job's units. Replace them with your own numbers. **Add a copy** duplicates a tool. Delete is blocked while a toolpath uses the tool. Filter by material and machine. The filter also limits the tools shown in toolpath forms. Tools you import or add are kept in your browser's storage.
 
 ## Preview
 
@@ -266,6 +295,8 @@ Press F3, or use the 3D View tab, or the eye icon in Toolpaths.
 ![3D view](images/downcut-3d.jpg)
 
 The preview cuts a height map from the G-code text. Drag to orbit, and scroll to zoom. **Shaded top view** shows the same result from above. Dark areas are cut through. **Checker report** in the right panel lists each file.
+
+**Depth passes:** when a Profile or Pocket has more than one pass, a slider appears above the view. Move it to see one pass at a time. In 2D it draws only that pass. In 3D it stops the cut at that depth. Move it to the far left to see all passes.
 
 The preview is a simulation. It does not show machine limits, clamps, or tool holders.
 
@@ -381,5 +412,7 @@ macOS may claim F11 and F12. The same layouts are in the View menu.
 | The 3D view does not start | Your browser needs WebGL2. The shaded top view still works |
 | A PDF import fails | Convert text to outlines, or save the art as SVG |
 | A `.pp` file is refused | Read the message. Rotary and POST_BASE posts are not supported |
+| A shape cuts nothing | Two stacked copies cancel out. Use [Clean up art](#clean-up-art) |
+| Imported art is the wrong size | Check the size in the status bar. Old DXF files have no units, so set the job's units first, then import again |
 
 To report a problem, open a [test report](https://github.com/quesohusker/downcut/issues/new?template=test-report.md). Tell us your machine, controller, and post.

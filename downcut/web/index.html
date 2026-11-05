@@ -37,7 +37,7 @@
         <button data-click="op-duplicate">Duplicate</button>
         <button data-click="op-delete">Delete</button>
         <hr>
-        <button data-form="check">Check vectors</button>
+        <button data-form="check">Check and clean up art</button>
       </div>
     </div>
     <div class="menu">
@@ -72,6 +72,8 @@
         <button data-run="layout-machine">Toolpath layout <kbd>F12</kbd></button>
         <button data-run="layout-both">Show both panels</button>
         <hr>
+        <button data-click="btn-zoom-in">Zoom in</button>
+        <button data-click="btn-zoom-out">Zoom out</button>
         <button data-click="btn-fit">Fit to sheet</button>
       </div>
     </div>
@@ -84,6 +86,7 @@
     </div>
   </nav>
   <div class="spacer"></div>
+  <label class="quick">Units <select id="quick-units" aria-label="Units"><option value="in">Inches</option><option value="mm">Millimeters</option></select></label>
   <label class="quick">Layer <select id="quick-layer" aria-label="Active layer"></select></label>
 </header>
 
@@ -149,7 +152,7 @@
         </div>
         <h2>Check</h2>
         <div class="tool-grid">
-          <button id="open-check" data-form="check">Check vectors and export</button>
+          <button id="open-check" data-form="check">Check, clean up, and export</button>
         </div>
       </section>
 
@@ -175,7 +178,7 @@
               <select id="job-z"><option value="top">Material top</option><option value="bottom">Spoilboard</option></select>
             </label>
             <label>XY zero
-              <select id="job-xy"><option value="lower_left">Lower left</option><option value="center">Center</option></select>
+              <select id="job-xy"><option value="lower_left">Lower left</option><option value="lower_right">Lower right</option><option value="upper_left">Upper left</option><option value="upper_right">Upper right</option><option value="center">Center</option></select>
             </label>
             <label>Safe Z <input id="job-safe" type="number" step="any" min="0"></label>
             <label>Spoilboard allowance <input id="job-allow" type="number" step="any" min="0"></label>
@@ -327,6 +330,14 @@
             <button id="export-dxf">Export DXF</button>
           </div>
           <ul class="issues" id="issue-list"></ul>
+          <h2>Clean up art</h2>
+          <div class="grid">
+            <label>Tiny size <input id="scan-tiny" type="number" step="any" min="0" value="0.02"></label>
+            <label>Overlap tolerance <input id="scan-tol" type="number" step="any" min="0" value="0.002"></label>
+          </div>
+          <p class="hint">Finds exact copies, lines on top of other lines, and tiny shapes. Review what it marks, because a tiny shape can be real detail.</p>
+          <div class="row"><button id="scan-run">Find problems</button></div>
+          <div id="scan-results"></div>
           <h2>Dimensions</h2>
           <ul class="issues" id="dimension-list"></ul>
         </div>
@@ -340,6 +351,10 @@
         <button id="view-2d" role="tab">2D View</button>
         <button id="view-3d" role="tab">3D View</button>
       </div>
+      <label class="depth-box" id="depth-box" title="Show one depth pass at a time" hidden>
+        <input type="range" id="depth-range" min="0" max="0" value="0" aria-label="Depth pass">
+        <span id="depth-label">All passes</span>
+      </label>
       <div class="view-options" id="options-2d">
         <label title="Show toolpaths"><input type="checkbox" id="show-paths" checked> Paths</label>
         <label title="Show rapid moves"><input type="checkbox" id="show-rapids"> Rapids</label>
@@ -347,6 +362,8 @@
         <label title="Snap to nodes, centers, and guides"><input type="checkbox" id="snap-smart" checked> Snap</label>
         <label title="Snap to a grid"><input type="checkbox" id="snap-grid"> Grid</label>
         <input type="number" id="snap-step" step="any" min="0" value="0.25" aria-label="Grid step" title="Grid step">
+        <button id="btn-zoom-out" title="Zoom out" aria-label="Zoom out">&#8722;</button>
+        <button id="btn-zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
         <button id="btn-fit">Fit</button>
       </div>
       <div class="view-options" id="options-3d" hidden>

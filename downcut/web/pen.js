@@ -313,6 +313,19 @@ function drawGuides() {
     ctx.stroke();
   }
   ctx.setLineDash([]);
+  const size = 22 / scale;
+  const ox = originX(), oy = originY();
+  ctx.lineWidth = 2 / scale;
+  ctx.strokeStyle = '#d64541';
+  ctx.beginPath();
+  ctx.moveTo(ox, oy);
+  ctx.lineTo(ox + size, oy);
+  ctx.stroke();
+  ctx.strokeStyle = '#27ae60';
+  ctx.beginPath();
+  ctx.moveTo(ox, oy);
+  ctx.lineTo(ox, oy + size);
+  ctx.stroke();
   const tile = state.job.tiling;
   if (tile && tile.enabled && tile.width > 0 && tile.height > 0) {
     const stepX = tile.width - (tile.overlap || 0), stepY = tile.height - (tile.overlap || 0);
@@ -373,6 +386,13 @@ function drawDimensions(ratio) {
     ctx.lineWidth = 1.5;
     ctx.strokeRect(screenX(x) - 6, screenY(y) - 6, 12, 12);
   }
+  for (const [x, y] of state.scanMarks) {
+    ctx.strokeStyle = '#e67e22';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(screenX(x), screenY(y), 8, 0, Math.PI * 2);
+    ctx.stroke();
+  }
   if (state.issueMark) {
     ctx.strokeStyle = css('--danger');
     ctx.lineWidth = 2;
@@ -411,30 +431,31 @@ function drawRulers(ratio) {
   ctx.textBaseline = 'alphabetic';
   ctx.textAlign = 'left';
   const label = (value) => String(Number(value.toFixed(3)));
-  const startX = Math.floor(worldX(RULER) / unit / step) * step;
-  for (let value = startX; screenX(value * unit) < w; value += step) {
+  const ox = originX(), oy = originY();
+  const startX = Math.floor((worldX(RULER) - ox) / unit / step) * step;
+  for (let value = startX; screenX(value * unit + ox) < w; value += step) {
     for (let k = 0; k < 5; k++) {
-      const x = screenX((value + (k * step) / 5) * unit);
+      const x = screenX((value + (k * step) / 5) * unit + ox);
       if (x < RULER) continue;
       ctx.beginPath();
       ctx.moveTo(x, RULER);
       ctx.lineTo(x, k ? RULER - 4 : RULER - 9);
       ctx.stroke();
     }
-    const x = screenX(value * unit);
+    const x = screenX(value * unit + ox);
     if (x >= RULER) ctx.fillText(label(value), x + 2, 10);
   }
-  const startY = Math.floor(worldY(h) / unit / step) * step;
-  for (let value = startY; screenY(value * unit) > 0; value += step) {
+  const startY = Math.floor((worldY(h) - oy) / unit / step) * step;
+  for (let value = startY; screenY(value * unit + oy) > 0; value += step) {
     for (let k = 0; k < 5; k++) {
-      const y = screenY((value + (k * step) / 5) * unit);
+      const y = screenY((value + (k * step) / 5) * unit + oy);
       if (y < RULER) continue;
       ctx.beginPath();
       ctx.moveTo(RULER, y);
       ctx.lineTo(k ? RULER - 4 : RULER - 9, y);
       ctx.stroke();
     }
-    const y = screenY(value * unit);
+    const y = screenY(value * unit + oy);
     if (y >= RULER) {
       ctx.save();
       ctx.translate(9, y - 2);

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-from functools import reduce
 
 import numpy as np
 import shapely
@@ -36,12 +35,25 @@ def polygon_from(points) -> Polygon | MultiPolygon:
     return poly.buffer(0)
 
 
+def _even_odd(shapes: list):
+    if len(shapes) == 1:
+        return shapes[0]
+    bounds = np.array([s.bounds for s in shapes])
+    centers = (bounds[:, :2] + bounds[:, 2:]) / 2
+    axis = int(np.argmax(np.ptp(centers, axis=0)))
+    order = np.argsort(centers[:, axis], kind="stable")
+    half = len(shapes) // 2
+    first = _even_odd([shapes[i] for i in order[:half]])
+    second = _even_odd([shapes[i] for i in order[half:]])
+    return first.symmetric_difference(second)
+
+
 def region(vectors: list[Vector]):
     shapes = [polygon_from(v.points) for v in vectors if v.closed]
     shapes = [s for s in shapes if not s.is_empty]
     if not shapes:
         return Polygon()
-    return reduce(lambda a, b: a.symmetric_difference(b), shapes)
+    return _even_odd(shapes)
 
 
 def oriented(poly: Polygon, ccw: bool) -> Polygon:

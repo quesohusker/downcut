@@ -9,6 +9,15 @@ from pathlib import Path
 MM_PER_IN = 25.4
 
 
+XY_ORIGINS = {
+    "lower_left": (0.0, 0.0),
+    "lower_right": (1.0, 0.0),
+    "upper_left": (0.0, 1.0),
+    "upper_right": (1.0, 1.0),
+    "center": (0.5, 0.5),
+}
+
+
 def new_id() -> str:
     return uuid.uuid4().hex[:10]
 

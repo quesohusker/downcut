@@ -14,7 +14,7 @@ Edition notes come from Vectric's compare table. "Pro only" means Cut2D Pro and 
 | Material size and thickness | P1 | |
 | Inch or metric units | P1 | |
 | Z zero at top or bottom | P1 | |
-| XY origin at corner or center | P1 | |
+| XY origin at any corner or center | P1 | |
 | Safe Z height | P1 | |
 | No job size limit | P1 | Desktop editions cap at 24 x 24 in |
 | Save and open projects | P1 | |
@@ -46,6 +46,7 @@ Edition notes come from Vectric's compare table. "Pro only" means Cut2D Pro and 
 | Smart snapping | P2 | |
 | Dimensions | P2 | |
 | Vector validator (overlaps, zero-length spans) | P2 | |
+| Clean up art (stacked copies, overlapping lines, tiny shapes) | P2 | Review tool with undo. Plain geometry, no network |
 | Vector texture generator | P3 | |
 | Image tracing | P3 | |
 | Bitmap adjust (contrast, gamma, crop) | P3 | |
@@ -96,6 +97,9 @@ Edition notes come from Vectric's compare table. "Pro only" means Cut2D Pro and 
 | Profile: outside, inside, on line | P1 | |
 | Profile: multi-pass, allowance, climb or conventional | P1 | |
 | Profile: tabs and ramped entry | P1 | |
+| Profile: continuous ramp around the vector | P2 | Spirals to depth, then one flat lap. Tabs still work |
+| Profile: last pass at full depth | P2 | Vectric calls this a separate last pass |
+| Keep tool down between depth passes | P2 | Profile and pocket |
 | Nested shape order (holes before outsides) | P1 | |
 | Pocket with islands | P1 | |
 | Drill with peck cycle | P1 | |
@@ -131,7 +135,7 @@ Edition notes come from Vectric's compare table. "Pro only" means Cut2D Pro and 
 |---|---|---|
 | Import 3D models | P3 | |
 | 3D roughing and finishing | P3 | |
-| Rest machining | P3 | |
+| Rest machining | P2 | Pocket only. A smaller end mill cuts what the main tool left |
 | Project 2D toolpaths onto a 3D surface | P3 | |
 
 ## Tool database
@@ -152,6 +156,7 @@ Edition notes come from Vectric's compare table. "Pro only" means Cut2D Pro and 
 | Estimated run time | P1 | |
 | Warnings per operation | P1 | |
 | Orbit 3D view | P2 | WebGL, from the simulated height map |
+| View one depth pass at a time | P2 | Profile and pocket, in 2D and 3D |
 | Material textures | P3 | |
 
 ## G-code output

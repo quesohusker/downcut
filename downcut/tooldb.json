@@ -6,5 +6,13 @@
   {"id": "vb-60", "name": "60 deg V-bit, 1/2 in", "kind": "vbit", "diameter": 12.7, "angle": 60, "feed": 1524, "plunge": 508, "rpm": 18000, "stepdown": 3.175, "flute_length": 12.7},
   {"id": "vb-90", "name": "90 deg V-bit, 1/2 in", "kind": "vbit", "diameter": 12.7, "angle": 90, "feed": 1524, "plunge": 508, "rpm": 18000, "stepdown": 3.175, "flute_length": 12.7},
   {"id": "dr-125", "name": "1/8 in drill", "kind": "drill", "diameter": 3.175, "feed": 381, "plunge": 381, "rpm": 12000, "stepdown": 3.175, "flute_length": 38.1},
-  {"id": "dr-250", "name": "1/4 in drill", "kind": "drill", "diameter": 6.35, "feed": 381, "plunge": 381, "rpm": 12000, "stepdown": 6.35, "flute_length": 63.5}
+  {"id": "dr-250", "name": "1/4 in drill", "kind": "drill", "diameter": 6.35, "feed": 381, "plunge": 381, "rpm": 12000, "stepdown": 6.35, "flute_length": 63.5},
+  {"id": "em-6m", "name": "6 mm end mill", "kind": "endmill", "diameter": 6.0, "feed": 2000, "plunge": 500, "rpm": 18000, "stepdown": 3.0, "stepover": 2.4, "flute_length": 25.0},
+  {"id": "em-3m", "name": "3 mm end mill", "kind": "endmill", "diameter": 3.0, "feed": 1200, "plunge": 400, "rpm": 18000, "stepdown": 1.5, "stepover": 1.2, "flute_length": 12.0},
+  {"id": "em-12m", "name": "12 mm end mill", "kind": "endmill", "diameter": 12.0, "feed": 2500, "plunge": 600, "rpm": 16000, "stepdown": 6.0, "stepover": 4.8, "flute_length": 30.0},
+  {"id": "bn-6m", "name": "6 mm ball nose", "kind": "ballnose", "diameter": 6.0, "feed": 1500, "plunge": 500, "rpm": 18000, "stepdown": 3.0, "stepover": 1.2, "flute_length": 18.0},
+  {"id": "vb-60m", "name": "60 deg V-bit, 12 mm", "kind": "vbit", "diameter": 12.0, "angle": 60, "feed": 1500, "plunge": 500, "rpm": 18000, "stepdown": 3.0, "flute_length": 12.0},
+  {"id": "vb-90m", "name": "90 deg V-bit, 12 mm", "kind": "vbit", "diameter": 12.0, "angle": 90, "feed": 1500, "plunge": 500, "rpm": 18000, "stepdown": 3.0, "flute_length": 12.0},
+  {"id": "dr-3m", "name": "3 mm drill", "kind": "drill", "diameter": 3.0, "feed": 380, "plunge": 380, "rpm": 12000, "stepdown": 3.0, "flute_length": 35.0},
+  {"id": "dr-6m", "name": "6 mm drill", "kind": "drill", "diameter": 6.0, "feed": 380, "plunge": 380, "rpm": 12000, "stepdown": 6.0, "flute_length": 60.0}
 ]

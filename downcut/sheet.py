@@ -20,6 +20,15 @@ ul { margin: 4px 0; padding-left: 18px; }
 """
 
 
+ORIGIN_NAMES = {
+    "lower_left": "Lower left corner",
+    "lower_right": "Lower right corner",
+    "upper_left": "Upper left corner",
+    "upper_right": "Upper right corner",
+    "center": "Center of sheet",
+}
+
+
 def _length(job, value: float) -> str:
     if job.units == "in":
         return f"{value / MM_PER_IN:.3f} in"
@@ -46,7 +55,7 @@ def setup_html(job, rows: list[dict], paths: list, image: str, title: str, post_
         ("Sheet", f"{_length(job, material.width)} x {_length(job, material.height)}"),
         ("Thickness", _length(job, material.thickness)),
         ("Z zero", "Top of material" if job.z_zero == "top" else "Spoilboard"),
-        ("XY zero", "Center of sheet" if job.xy_origin == "center" else "Lower left corner"),
+        ("XY zero", ORIGIN_NAMES.get(job.xy_origin, "Lower left corner")),
         ("Safe Z", _length(job, job.safe_z)),
         ("Spoilboard allowance", _length(job, job.spoilboard_allowance)),
         ("Machine post", post_name),

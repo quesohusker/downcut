@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 
 from . import __version__
 from .arcfit import ARC_CCW, ARC_CW, fit_arcs
-from .model import MM_PER_IN, Job
+from .model import MM_PER_IN, XY_ORIGINS, Job
 from .toolpaths.base import CUT, RAPID, Toolpath
 
 STATEMENT = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$")
@@ -20,6 +20,13 @@ SPINDLE = re.compile(r"(?<![A-Za-z])M0*[34](?!\d)")
 UNIT_INCH = re.compile(r"(?<![A-Za-z])G0*20(?!\d)")
 UNIT_MM = re.compile(r"(?<![A-Za-z])G0*21(?!\d)")
 
+ORIGIN_NAMES = {
+    "lower_left": "Bottom Left Corner",
+    "lower_right": "Bottom Right Corner",
+    "upper_left": "Top Left Corner",
+    "upper_right": "Top Right Corner",
+    "center": "Centre",
+}
 NUMERIC = {
     "F", "FC", "FP", "S", "T", "TP", "N", "P", "X", "Y", "Z", "I", "J", "IA", "JA",
     "ArcStartX", "ArcStartY", "ArcMidX", "ArcMidY", "ArcMidXI", "ArcMidYI", "Radius", "Angle",
@@ -255,9 +262,8 @@ class _Writer:
         self.name = name
         self.tool = paths[0].tool
         self.scale = 1 / MM_PER_IN if post.units == "in" else 1.0
-        self.ox, self.oy, self.oz = 0.0, 0.0, 0.0
-        if job.xy_origin == "center":
-            self.ox, self.oy = job.material.width / 2, job.material.height / 2
+        fx, fy = XY_ORIGINS.get(job.xy_origin, (0.0, 0.0))
+        self.ox, self.oy, self.oz = job.material.width * fx, job.material.height * fy, 0.0
         if job.z_zero == "bottom":
             self.oz = job.material.thickness
         self.last: dict[str, str] = {}
@@ -321,7 +327,7 @@ class _Writer:
                 "X_ORIGIN_POS": format_number(PpVariable("x"), self.ox * s),
                 "Y_ORIGIN_POS": format_number(PpVariable("y"), self.oy * s),
                 "Z_ORIGIN": "Table Surface" if job.z_zero == "bottom" else "Material Surface",
-                "XY_ORIGIN": "Centre" if job.xy_origin == "center" else "Bottom Left Corner",
+                "XY_ORIGIN": ORIGIN_NAMES.get(job.xy_origin, "Bottom Left Corner"),
                 "TOOLS_USED": tool.name,
                 "TOOLPATHS_OUTPUT": ", ".join(path.name for path in self.paths),
                 "TOOLPATH_NAME": self.paths[0].name,

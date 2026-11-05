@@ -25,14 +25,15 @@ def _plunge(builder, ring, z) -> None:
     builder.go_to_cut(ring[0, 0], ring[0, 1], z)
 
 
-def _ramp(builder, entry: Entry, ring, top: float, z: float) -> None:
+def _ramp(builder, entry: Entry, ring, top: float, z: float, stay: bool = False) -> None:
     total = path_length(ring)
     if total < 1e-6:
         _plunge(builder, ring, z)
         return
     need = (top - z) / math.tan(math.radians(entry.angle))
-    builder.travel(ring[0, 0], ring[0, 1])
-    builder.enter(top)
+    if not stay:
+        builder.travel(ring[0, 0], ring[0, 1])
+        builder.enter(top)
     along = 0.0
     while True:
         for (x0, y0), (x1, y1) in zip(ring[:-1], ring[1:]):
@@ -116,7 +117,11 @@ def cut_rings(builder, rings, allowed, z, top: float = 0.0, entry: Entry | None 
             start = rotate_ring(ring, builder.x, builder.y)
             target = (start[0, 0], start[0, 1])
             if inside_line(allowed, (builder.x, builder.y), target):
-                builder.cut(target[0], target[1], z)
+                if entry is not None and builder.z > z + 1e-6:
+                    builder.cut(target[0], target[1], builder.z)
+                    _ramp(builder, entry, start, builder.z, z, stay=True)
+                else:
+                    builder.cut(target[0], target[1], z)
             else:
                 enter_at(builder, start, top, z, allowed, entry)
         for x, y in start[1:]:
@@ -160,6 +165,8 @@ def build_pocket(job: Job, op: Operation) -> list[Toolpath]:
     finish = float(params.get("finish_allowance") or 0.0)
     kind = params.get("entry", "plunge")
     angle = float(params.get("entry_angle") or 3.0)
+    keep_down = bool(params.get("keep_down", False))
+    rest_id = params.get("rest_tool_id")
 
     path = Toolpath(op.id, op.name or "Pocket", tool)
     path.warnings.extend(flute_warning(tool, depth))
@@ -191,7 +198,8 @@ def build_pocket(job: Job, op: Operation) -> list[Toolpath]:
     top = 0.0
     levels = depth_levels(depth, tool.stepdown)
     for level in levels:
-        builder.retract()
+        if not keep_down:
+            builder.retract()
         cut_rings(builder, rings, rough, level, top, entry)
         top = level
     if finish > 0:
@@ -200,4 +208,33 @@ def build_pocket(job: Job, op: Operation) -> list[Toolpath]:
     path.moves = builder.moves
     if entry is not None:
         path.warnings.extend(sorted(entry.notes))
-    return [path]
+    results = [path]
+    if rest_id:
+        rest = rest_path(job, op, shape, walls, tool, job.tool(rest_id), allowance, depth, climb)
+        if rest.moves:
+            results.append(rest)
+        path.warnings.extend(rest.warnings)
+    return results
+
+
+def rest_path(job, op, shape, walls, main: Tool, tool: Tool, allowance, depth, climb) -> Toolpath:
+    path = Toolpath(op.id, f"{op.name or 'Pocket'} rest", tool)
+    if tool.diameter >= main.diameter:
+        path.warnings.append("The rest tool must be smaller than the pocket tool. Rest machining was skipped.")
+        return path
+    path.warnings.extend(flute_warning(tool, depth))
+    target = shape.buffer(-allowance, join_style="mitre", mitre_limit=20) if allowance > 0 else shape
+    left = target.difference(walls.buffer(main.radius, quad_segs=16).buffer(0.01))
+    room = shape.buffer(-(tool.radius + allowance), join_style="mitre", mitre_limit=20)
+    zone = room.intersection(left.buffer(tool.radius + 0.01, quad_segs=8))
+    if not polygons(zone):
+        path.warnings.append("The pocket tool reaches the whole pocket, so rest machining found nothing to cut.")
+        return path
+    rings = clearing_rings(zone, tool.stepover or tool.diameter * 0.4, climb)
+    builder = PathBuilder(tool, job.safe_z)
+    for level in depth_levels(depth, tool.stepdown):
+        builder.retract()
+        cut_rings(builder, rings, zone, level)
+    builder.retract()
+    path.moves = builder.moves
+    return path

@@ -8,6 +8,7 @@ from dataclasses import asdict
 
 from . import (
     __version__,
+    cleanup,
     edit,
     exporters,
     importers,
@@ -46,7 +47,7 @@ def _vectors(rows: list[dict]) -> list[Vector]:
 
 def _used(op: Operation, vector_ids: set, tool_ids: set) -> None:
     vector_ids.update(op.vector_ids)
-    tool_ids.update({op.tool_id, op.params.get("clear_tool_id")})
+    tool_ids.update({op.tool_id, op.params.get("clear_tool_id"), op.params.get("rest_tool_id")})
     for row in op.params.get("operations", []):
         _used(Operation(**row), vector_ids, tool_ids)
 
@@ -90,12 +91,12 @@ def _display(path) -> dict:
     runs = []
     current = None
     last = None
-    for code, x, y, _, _ in path.moves:
+    for code, x, y, z, _ in path.moves:
         kind = "rapid" if code == RAPID else "cut"
         if current is None or current["kind"] != kind:
             current = {"kind": kind, "points": [last] if last else []}
             runs.append(current)
-        last = [round(x, 3), round(y, 3)]
+        last = [round(x, 3), round(y, 3), round(z, 3)]
         current["points"].append(last)
     return {
         "operation_id": path.operation_id,
@@ -341,6 +342,23 @@ def nest_vectors(body: dict) -> dict:
 
 def validate_vectors(body: dict) -> dict:
     return {"issues": validate.validate(_vectors(body["vectors"]))}
+
+
+def scan_vectors(body: dict) -> dict:
+    return cleanup.scan(
+        _vectors(body["vectors"]),
+        float(body.get("tiny", 0.5)),
+        float(body.get("tolerance", 0.05)),
+    )
+
+
+def trim_overlap(body: dict) -> dict:
+    pieces = cleanup.trim_overlap(
+        Vector(**body["target"]),
+        Vector(**body["other"]),
+        float(body.get("tolerance", 0.05)),
+    )
+    return {"vectors": _vector_rows(pieces)}
 
 
 def export_vectors(body: dict) -> dict:

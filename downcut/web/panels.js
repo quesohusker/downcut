@@ -164,8 +164,8 @@ function circularArray() {
     kind: 'circle',
     vectors: chosen,
     count: Number($('#circle-count').value),
-    cx: toMm(Number($('#circle-x').value)),
-    cy: toMm(Number($('#circle-y').value)),
+    cx: toMm(Number($('#circle-x').value)) + originX(),
+    cy: toMm(Number($('#circle-y').value)) + originY(),
     sweep: Number($('#circle-sweep').value),
     rotate: $('#circle-rotate').checked,
   }, (rows) => `Added ${rows.length} vectors.`);
@@ -245,6 +245,129 @@ async function checkVectors() {
     say(error.message, true);
   }
   draw();
+}
+
+const SCAN_GROUPS = [
+  ['duplicates', 'Copies and lines on top of others', 'Remove them'],
+  ['tiny', 'Tiny shapes', 'Remove them'],
+  ['overlaps', 'Overlapping spans', 'Trim open lines'],
+];
+
+async function scanArt() {
+  const rows = state.job.vectors.filter(shownVector);
+  if (!rows.length) {
+    say('There are no vectors to check.', true);
+    return;
+  }
+  try {
+    state.scan = await call('/api/scan', {
+      vectors: rows,
+      tiny: toMm(Number($('#scan-tiny').value)),
+      tolerance: toMm(Number($('#scan-tol').value)),
+    });
+    renderScan();
+  } catch (error) {
+    say(error.message, true);
+  }
+}
+
+function renderScan() {
+  const host = $('#scan-results');
+  host.replaceChildren();
+  const scan = state.scan;
+  state.scanMarks = [];
+  if (!scan) {
+    draw();
+    return;
+  }
+  let found = 0;
+  for (const [key, title, action] of SCAN_GROUPS) {
+    const rows = scan[key];
+    if (!rows.length) continue;
+    found += rows.length;
+    state.scanMarks.push(...rows.map((row) => row.point));
+    const box = document.createElement('div');
+    box.className = 'scan-group';
+    const heading = document.createElement('h4');
+    heading.textContent = `${title}: ${rows.length}`;
+    const buttons = document.createElement('div');
+    buttons.className = 'row';
+    const show = document.createElement('button');
+    show.textContent = 'Select them';
+    show.addEventListener('click', () => {
+      state.selection = new Set(rows.map((row) => row.vector_id));
+      renderDesign();
+      draw();
+    });
+    buttons.append(show);
+    if (key !== 'overlaps' || rows.some((row) => row.fixable)) {
+      const fix = document.createElement('button');
+      fix.textContent = action;
+      fix.className = key === 'overlaps' ? '' : 'danger';
+      fix.addEventListener('click', () => (key === 'overlaps' ? trimOverlaps(rows) : removeFound(rows)));
+      buttons.append(fix);
+    }
+    const list = document.createElement('ul');
+    for (const row of rows.slice(0, 60)) {
+      const item = document.createElement('li');
+      item.textContent = `${row.label}, ${trim(toUnits(row.size))} ${unitLabel()}`;
+      item.addEventListener('click', () => focusFound(row));
+      list.append(item);
+    }
+    box.append(heading, buttons, list);
+    if (key === 'overlaps' && !rows.some((row) => row.fixable)) {
+      const note = document.createElement('p');
+      note.className = 'hint';
+      note.textContent = 'These closed shapes share an edge. Weld them to make one shape, or leave them if they are separate parts.';
+      box.append(note);
+    }
+    host.append(box);
+  }
+  say(found ? `Found ${found} item${found === 1 ? '' : 's'} to review.` : 'No duplicates or tiny shapes found.');
+  draw();
+}
+
+function focusFound(row) {
+  const vector = state.job.vectors.find((item) => item.id === row.vector_id);
+  if (!vector) return;
+  state.selection = new Set([vector.id]);
+  const scale = Math.max(state.view.scale, 40);
+  state.view = {
+    scale,
+    ox: canvas.clientWidth / 2 - row.point[0] * scale,
+    oy: canvas.clientHeight / 2 + row.point[1] * scale,
+  };
+  renderDesign();
+  draw();
+}
+
+function removeFound(rows) {
+  remember();
+  const gone = new Set(rows.map((row) => row.vector_id));
+  state.job.vectors = state.job.vectors.filter((vector) => !gone.has(vector.id));
+  for (const op of state.job.operations) op.vector_ids = op.vector_ids.filter((id) => !gone.has(id));
+  state.selection = new Set();
+  state.scan = null;
+  renderScan();
+  changed();
+  say(`Removed ${gone.size} vector${gone.size === 1 ? '' : 's'}. Undo brings them back.`);
+}
+
+async function trimOverlaps(rows) {
+  const tolerance = toMm(Number($('#scan-tol').value));
+  try {
+    for (const row of rows.filter((item) => item.fixable)) {
+      const target = state.job.vectors.find((vector) => vector.id === row.vector_id);
+      const other = state.job.vectors.find((vector) => vector.id === row.other_id);
+      if (!target || !other) continue;
+      const { vectors } = await call('/api/trim-overlap', { target, other, tolerance });
+      replaceVectors([target.id], vectors);
+    }
+    state.scan = null;
+    renderScan();
+  } catch (error) {
+    say(error.message, true);
+  }
 }
 
 async function exportVectors(format) {

@@ -46,7 +46,62 @@ const state = {
   form: null,
   viewMode: '2d',
   previewMode: 'orbit',
+  fieldUnits: 'in',
+  depthLevels: [],
+  depthIndex: 0,
+  scan: null,
+  scanMarks: [],
 };
+
+const ORIGIN_FRACTIONS = {
+  lower_left: [0, 0],
+  lower_right: [1, 0],
+  upper_left: [0, 1],
+  upper_right: [1, 1],
+  center: [0.5, 0.5],
+};
+
+const originX = () => state.job.material.width * (ORIGIN_FRACTIONS[state.job.xy_origin] || [0, 0])[0];
+const originY = () => state.job.material.height * (ORIGIN_FRACTIONS[state.job.xy_origin] || [0, 0])[1];
+
+const UNIT_FIELDS = {
+  'sel-offset': [0.125, 3],
+  'edit-tolerance': [0.01, 0.25],
+  'edit-radius': [0.125, 3],
+  'edit-bone': [0.25, 6],
+  'grid-step-x': [2, 50],
+  'grid-step-y': [2, 50],
+  'circle-x': [12, 300],
+  'circle-y': [9, 200],
+  'nest-gap': [0.3, 8],
+  'nest-margin': [0.25, 6],
+  'scan-tiny': [0.02, 0.5],
+  'scan-tol': [0.002, 0.05],
+  'snap-step': [0.25, 5],
+  'text-height': [1, 25],
+};
+
+function convertFields(from, to) {
+  for (const [id, pair] of Object.entries(UNIT_FIELDS)) {
+    const input = document.getElementById(id);
+    if (input.value === '') continue;
+    const value = Number(input.value);
+    const usual = pair[from === 'mm' ? 1 : 0];
+    if (Math.abs(value - usual) < 1e-9) input.value = pair[to === 'mm' ? 1 : 0];
+    else input.value = trim(to === 'mm' ? value * MM : value / MM);
+  }
+  state.snap.step = toMm(Number($('#snap-step').value));
+}
+
+function preferredUnits() {
+  return state.library.units || (/^en-US/i.test(navigator.language) ? 'in' : 'mm');
+}
+
+function applyUnits(units) {
+  state.job.units = units;
+  state.library.units = units;
+  saveLibrary();
+}
 
 const canvas = $('#canvas');
 const ctx = canvas.getContext('2d');
@@ -78,13 +133,15 @@ const trim = (value) => String(Number(value.toFixed(inches() ? 4 : 2)));
 const unitLabel = () => (inches() ? 'in' : 'mm');
 
 function newJob() {
+  const units = preferredUnits();
+  const metric = units === 'mm';
   return {
-    material: { width: 24 * MM, height: 18 * MM, thickness: 0.75 * MM },
-    units: 'in',
+    material: metric ? { width: 600, height: 400, thickness: 18 } : { width: 24 * MM, height: 18 * MM, thickness: 0.75 * MM },
+    units,
     z_zero: 'top',
     xy_origin: 'lower_left',
-    safe_z: 0.2 * MM,
-    spoilboard_allowance: 0.02 * MM,
+    safe_z: metric ? 5 : 0.2 * MM,
+    spoilboard_allowance: metric ? 0.5 : 0.02 * MM,
     vectors: [],
     tools: state.boot.tools.map((tool) => ({ ...tool })),
     operations: [],
@@ -199,6 +256,7 @@ async function compute() {
     const result = await call('/api/compute', { job: state.job, post: $('#post-select').value, title: $('#job-title').value });
     if (token !== state.computeToken) return;
     state.computed = result;
+    refreshDepthLevels();
     buildPathShapes();
     renderOperations();
     draw();
@@ -209,13 +267,75 @@ async function compute() {
   }
 }
 
+function findDepthLevels(paths) {
+  const lengths = new Map();
+  let total = 0;
+  const stepped = new Set(state.job.operations.filter((op) => op.kind === 'profile' || op.kind === 'pocket').map((op) => op.id));
+  for (const path of paths) {
+    if (!stepped.has(path.operation_id)) continue;
+    for (const run of path.runs) {
+      if (run.kind !== 'cut') continue;
+      for (let i = 1; i < run.points.length; i++) {
+        const [x0, y0, z0] = run.points[i - 1], [x1, y1, z1] = run.points[i];
+        const length = Math.hypot(x1 - x0, y1 - y0);
+        total += length;
+        if (z0 < 0 && Math.abs(z0 - z1) < 0.002) {
+          const key = Math.round(z0 * 100) / 100;
+          lengths.set(key, (lengths.get(key) || 0) + length);
+        }
+      }
+    }
+  }
+  const least = Math.max(total * 0.002, 2);
+  return [...lengths].filter(([, length]) => length >= least).map(([z]) => z).sort((a, b) => b - a);
+}
+
+function refreshDepthLevels() {
+  state.depthLevels = findDepthLevels(state.computed.paths);
+  if (state.depthIndex > state.depthLevels.length) state.depthIndex = 0;
+  const range = $('#depth-range');
+  range.max = state.depthLevels.length;
+  range.value = state.depthIndex;
+  $('#depth-box').hidden = state.depthLevels.length < 2;
+  renderDepthLabel();
+}
+
+function renderDepthLabel() {
+  const index = state.depthIndex;
+  $('#depth-label').textContent = index
+    ? `Pass ${index} of ${state.depthLevels.length}, ${trim(toUnits(state.depthLevels[index - 1]))} ${unitLabel()}`
+    : 'All passes';
+}
+
+function setDepthIndex(index) {
+  state.depthIndex = index;
+  renderDepthLabel();
+  buildPathShapes();
+  draw();
+  if (state.viewMode === '3d' && state.previewMode === 'orbit') showOrbit();
+}
+
 function buildPathShapes() {
   const cut = new Path2D();
   const rapid = new Path2D();
+  const index = state.depthIndex;
+  const level = index ? state.depthLevels[index - 1] : null;
+  const upper = index > 1 ? state.depthLevels[index - 2] : Infinity;
   for (const path of state.computed.paths) {
     for (const run of path.runs) {
       const target = run.kind === 'cut' ? cut : rapid;
-      run.points.forEach(([x, y], index) => (index ? target.lineTo(x, y) : target.moveTo(x, y)));
+      if (run.kind === 'cut' && index) {
+        for (let i = 1; i < run.points.length; i++) {
+          const [x0, y0, z0] = run.points[i - 1], [x1, y1, z1] = run.points[i];
+          const low = Math.min(z0, z1);
+          if (low >= level - 0.005 && low < upper - 0.005) {
+            target.moveTo(x0, y0);
+            target.lineTo(x1, y1);
+          }
+        }
+      } else if (!index) {
+        run.points.forEach(([x, y], at) => (at ? target.lineTo(x, y) : target.moveTo(x, y)));
+      }
     }
   }
   state.cutPath = cut;
@@ -419,6 +539,14 @@ function withGroup(vector) {
   return state.job.vectors.filter((other) => other.group === vector.group);
 }
 
+function zoomAt(sx, sy, factor) {
+  const x = worldX(sx), y = worldY(sy);
+  state.view.scale = Math.min(Math.max(state.view.scale * factor, 0.05), 2000);
+  state.view.ox = sx - x * state.view.scale;
+  state.view.oy = sy + y * state.view.scale;
+  draw();
+}
+
 function pointerPosition(event) {
   const rect = canvas.getBoundingClientRect();
   return [event.clientX - rect.left, event.clientY - rect.top];
@@ -441,7 +569,7 @@ function onPointerDown(event) {
   canvas.setPointerCapture(event.pointerId);
   const [sx, sy] = pointerPosition(event);
   const world = [worldX(sx), worldY(sy)];
-  if (event.button === 1 || state.spaceDown) {
+  if (event.button === 1 || event.button === 2 || state.spaceDown) {
     state.gesture = { type: 'pan', sx, sy, ox: state.view.ox, oy: state.view.oy };
     return;
   }
@@ -536,7 +664,7 @@ function applyPoints(map, transform) {
 function onPointerMove(event) {
   const [sx, sy] = pointerPosition(event);
   const world = [worldX(sx), worldY(sy)];
-  $('#status-pos').textContent = `X ${trim(toUnits(world[0]))}  Y ${trim(toUnits(world[1]))} ${unitLabel()}`;
+  $('#status-pos').textContent = `X ${trim(toUnits(world[0] - originX()))}  Y ${trim(toUnits(world[1] - originY()))} ${unitLabel()}`;
   const gesture = state.gesture;
   if (PEN_TOOLS.has(state.tool) || state.tool === 'measure') {
     state.pointer = snapped(world);
@@ -762,6 +890,11 @@ function renderJob() {
   $('#job-units').value = units;
   $('#job-z').value = z_zero;
   $('#job-xy').value = xy_origin;
+  $('#quick-units').value = units;
+  if (state.fieldUnits !== units) {
+    convertFields(state.fieldUnits, units);
+    state.fieldUnits = units;
+  }
   $('#job-arcs').checked = state.job.arc_output;
   const tile = state.job.tiling;
   $('#tile-on').checked = Boolean(tile.enabled);
@@ -769,7 +902,7 @@ function renderJob() {
   $('#tile-h').value = tile.height ? trim(toUnits(tile.height)) : '';
   $('#tile-overlap').value = trim(toUnits(tile.overlap || 0));
   renderMachines();
-  if (!$('#text-height').value) $('#text-height').value = trim(toUnits(MM));
+  if (!$('#text-height').value) $('#text-height').value = inches() ? 1 : 25;
 }
 
 function renderDesign() {
@@ -781,8 +914,8 @@ function renderDesign() {
   if (!box) return;
   const count = state.selection.size;
   $('#selection-title').textContent = `${count} vector${count === 1 ? '' : 's'} selected`;
-  $('#sel-x').value = trim(toUnits(box[0]));
-  $('#sel-y').value = trim(toUnits(box[1]));
+  $('#sel-x').value = trim(toUnits(box[0] - originX()));
+  $('#sel-y').value = trim(toUnits(box[1] - originY()));
   $('#sel-w').value = trim(toUnits(box[2] - box[0]));
   $('#sel-h').value = trim(toUnits(box[3] - box[1]));
 }
@@ -802,12 +935,15 @@ const OPERATIONS = {
     kinds: ['endmill'],
     fields: [
       { key: 'depth', label: 'Cut depth', type: 'length', initial: () => state.job.material.thickness, section: 'Cutting depth' },
+      { key: 'keep_down', label: 'Keep tool down between passes', type: 'check', initial: false, section: 'Cutting depth' },
       { key: 'side', label: 'Side', type: 'select', options: [['outside', 'Outside'], ['inside', 'Inside'], ['on', 'On the line']], initial: 'outside', section: 'Machine vectors' },
       { key: 'allowance', label: 'Allowance', type: 'length', initial: 0, section: 'Machine vectors' },
       { ...CLIMB, section: 'Machine vectors' },
-      { key: 'ramp_length', label: 'Ramp length', type: 'length', initial: 0, section: 'Ramps and leads' },
-      { key: 'lead', label: 'Lead in and out', type: 'select', options: [['none', 'None'], ['arc', 'Arc'], ['line', 'Line']], initial: 'none', section: 'Ramps and leads' },
-      { key: 'lead_length', label: 'Lead length', type: 'length', initial: () => (inches() ? 0.25 * MM : 6), when: (p) => p.lead !== 'none', section: 'Ramps and leads' },
+      { key: 'spiral', label: 'Continuous ramp around the vector', type: 'check', initial: false, rerender: true, section: 'Ramps and leads' },
+      { key: 'ramp_length', label: 'Ramp length', type: 'length', initial: 0, when: (p) => !p.spiral, section: 'Ramps and leads' },
+      { key: 'lead', label: 'Lead in and out', type: 'select', options: [['none', 'None'], ['arc', 'Arc'], ['line', 'Line']], initial: 'none', when: (p) => !p.spiral, section: 'Ramps and leads' },
+      { key: 'lead_length', label: 'Lead length', type: 'length', initial: () => (inches() ? 0.25 * MM : 6), when: (p) => !p.spiral && p.lead !== 'none', section: 'Ramps and leads' },
+      { key: 'finish_allowance', label: 'Last pass stock', type: 'length', initial: 0, section: 'Last pass' },
       { key: 'tab_count', label: 'Tabs', type: 'count', initial: 0, section: 'Tabs' },
       { key: 'tab_length', label: 'Tab length', type: 'length', initial: () => (inches() ? 0.5 * MM : 12), section: 'Tabs' },
       { key: 'tab_thickness', label: 'Tab thickness', type: 'length', initial: () => (inches() ? 0.125 * MM : 3), section: 'Tabs' },
@@ -818,11 +954,13 @@ const OPERATIONS = {
     kinds: ['endmill'],
     fields: [
       { key: 'depth', label: 'Cut depth', type: 'length', initial: () => (inches() ? 0.25 * MM : 6), section: 'Cutting depth' },
+      { key: 'keep_down', label: 'Keep tool down between passes', type: 'check', initial: false, section: 'Cutting depth' },
       { key: 'allowance', label: 'Allowance', type: 'length', initial: 0, section: 'Pocket options' },
       { key: 'finish_allowance', label: 'Finish pass stock', type: 'length', initial: 0, section: 'Pocket options' },
       { ...CLIMB, section: 'Pocket options' },
       { key: 'entry', label: 'Entry', type: 'select', options: [['plunge', 'Plunge'], ['ramp', 'Ramp'], ['helix', 'Helix']], initial: 'plunge', section: 'Entry' },
       { key: 'entry_angle', label: 'Entry angle (deg)', type: 'plain', initial: 3, when: (p) => p.entry !== 'plunge', section: 'Entry' },
+      { key: 'rest_tool_id', label: 'Smaller tool for tight spots', type: 'clearing', initial: '', section: 'Rest machining' },
     ],
   },
   vcarve: {
@@ -905,7 +1043,9 @@ function startOperation(kind) {
   for (const field of fields) {
     params[field.key] = typeof field.initial === 'function' ? field.initial() : field.initial;
   }
-  const tool = filteredTools().find((t) => spec.kinds.includes(t.kind)) || state.job.tools.find((t) => spec.kinds.includes(t.kind));
+  const fitting = filteredTools().filter((t) => spec.kinds.includes(t.kind));
+  const metricName = / mm\b/;
+  const tool = fitting.find((t) => metricName.test(t.name) === !inches()) || fitting[0] || state.job.tools.find((t) => spec.kinds.includes(t.kind));
   state.draft = { kind, name: spec.label, tool_id: tool.id, params, vector_ids: [], id: null, enabled: true };
   state.activeOp = null;
   renderForm();
@@ -950,7 +1090,10 @@ function fieldControl(field, params) {
   if (field.type === 'check') {
     input.type = 'checkbox';
     input.checked = Boolean(params[field.key]);
-    input.addEventListener('change', () => { params[field.key] = input.checked; });
+    input.addEventListener('change', () => {
+      params[field.key] = input.checked;
+      if (field.rerender) renderForm();
+    });
     const label = labelled(` ${field.label}`, input);
     label.prepend(input);
     label.className = 'check';
@@ -1322,7 +1465,8 @@ function showOrbit() {
   $('#orbit-canvas').hidden = false;
   $('#view-shaded').classList.remove('active');
   $('#view-orbit').classList.add('active');
-  if (state.surface && !orbit.load($('#orbit-canvas'), state.surface, state.job.material.thickness)) {
+  const floor = state.depthIndex ? state.depthLevels[state.depthIndex - 1] : null;
+  if (state.surface && !orbit.load($('#orbit-canvas'), state.surface, state.job.material.thickness, floor)) {
     showShaded();
     $('#preview-state').textContent = 'This view cannot start 3D graphics, so the shaded view stays on.';
   }
@@ -1369,6 +1513,12 @@ function loadJob(job) {
   state.refId = null;
   state.issueMark = null;
   state.checked = new Set();
+  state.scan = null;
+  state.scanMarks = [];
+  state.depthLevels = [];
+  state.depthIndex = 0;
+  $('#scan-results').replaceChildren();
+  $('#depth-box').hidden = true;
   $('#issue-list').replaceChildren();
   syncPosts();
   renderDimensions();
@@ -1410,13 +1560,12 @@ async function importFile() {
   try {
     const { vectors } = await call('/api/import', { name: file.name, data: file.base64, units: state.job.units });
     const { width, height } = state.job.material;
-    const xs = vectors.flatMap((v) => v.points.map((p) => p[0]));
-    const ys = vectors.flatMap((v) => v.points.map((p) => p[1]));
-    const dx = (width - Math.max(...xs)) / 2, dy = (height - Math.max(...ys)) / 2;
+    const [x0, y0, x1, y1] = boxOf(vectors);
+    const dx = (width - x1) / 2, dy = (height - y1) / 2;
     for (const vector of vectors) vector.points = vector.points.map(([x, y]) => [x + dx, y + dy]);
     addVectors(vectors, newId());
     setTab('design');
-    say(`Imported ${vectors.length} vectors from ${file.name}`);
+    say(`Imported ${vectors.length} vectors from ${file.name}, ${trim(toUnits(x1 - x0))} x ${trim(toUnits(y1 - y0))} ${unitLabel()}.`);
   } catch (error) {
     say(error.message, true);
   }
@@ -1440,8 +1589,8 @@ function resizeSelection() {
 function positionSelection() {
   const box = selectionBounds();
   if (!box) return;
-  const dx = toMm(Number($('#sel-x').value)) - box[0];
-  const dy = toMm(Number($('#sel-y').value)) - box[1];
+  const dx = toMm(Number($('#sel-x').value)) + originX() - box[0];
+  const dy = toMm(Number($('#sel-y').value)) + originY() - box[1];
   transformSelection(([x, y]) => [x + dx, y + dy], true);
 }
 
@@ -1609,7 +1758,8 @@ function bindUi() {
   bindJobField('#job-width', (v) => { state.job.material.width = toMm(Number(v)); });
   bindJobField('#job-height', (v) => { state.job.material.height = toMm(Number(v)); });
   bindJobField('#job-thickness', (v) => { state.job.material.thickness = toMm(Number(v)); });
-  bindJobField('#job-units', (v) => { state.job.units = v; });
+  bindJobField('#job-units', applyUnits);
+  bindJobField('#quick-units', applyUnits);
   bindJobField('#job-z', (v) => { state.job.z_zero = v; });
   bindJobField('#job-xy', (v) => { state.job.xy_origin = v; });
   bindJobField('#job-safe', (v) => { state.job.safe_z = toMm(Number(v)); });
@@ -1634,21 +1784,22 @@ function bindUi() {
   canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointermove', onPointerMove);
   canvas.addEventListener('pointerup', onPointerUp);
+  canvas.addEventListener('contextmenu', (event) => event.preventDefault());
   canvas.addEventListener('wheel', (event) => {
     event.preventDefault();
-    if (event.ctrlKey || event.metaKey) {
-      const [sx, sy] = pointerPosition(event);
-      const factor = Math.exp(-event.deltaY * 0.01);
-      const x = worldX(sx), y = worldY(sy);
-      state.view.scale *= factor;
-      state.view.ox = sx - x * state.view.scale;
-      state.view.oy = sy + y * state.view.scale;
-    } else {
+    if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
       state.view.ox -= event.deltaX;
-      state.view.oy -= event.deltaY;
+      draw();
+      return;
     }
-    draw();
+    const lines = event.deltaMode === 1 ? 33 : 1;
+    const rate = event.ctrlKey || event.metaKey ? 0.01 : 0.002;
+    zoomAt(...pointerPosition(event), Math.exp(-event.deltaY * lines * rate));
   }, { passive: false });
+  $('#btn-zoom-in').addEventListener('click', () => zoomAt(canvas.clientWidth / 2, canvas.clientHeight / 2, 1.3));
+  $('#btn-zoom-out').addEventListener('click', () => zoomAt(canvas.clientWidth / 2, canvas.clientHeight / 2, 1 / 1.3));
+  $('#depth-range').addEventListener('input', (event) => setDepthIndex(Number(event.target.value)));
+  $('#scan-run').addEventListener('click', scanArt);
 
   window.addEventListener('resize', resize);
   window.addEventListener('keyup', (event) => {

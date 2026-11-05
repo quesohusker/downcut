@@ -14,6 +14,13 @@ COMMA_NUMBER = re.compile(r"[A-Z]\s*[-+]?\d+,\d")
 DEFAULT_RAPID_MM_MIN = 5080.0
 CHORD_TOLERANCE = 0.01
 ARC_RADIUS_TOLERANCE = 0.005
+ORIGIN_FRACTIONS = {
+    "lower_left": (0.0, 0.0),
+    "lower_right": (1.0, 0.0),
+    "upper_left": (0.0, 1.0),
+    "upper_right": (1.0, 1.0),
+    "center": (0.5, 0.5),
+}
 
 
 @dataclass
@@ -62,10 +69,8 @@ class Report:
 
 
 def limits_for(job, tool, strict: bool = True, spindle_required: bool = True) -> Limits:
-    if job.xy_origin == "center":
-        x_low, y_low = -job.material.width / 2, -job.material.height / 2
-    else:
-        x_low, y_low = 0.0, 0.0
+    fx, fy = ORIGIN_FRACTIONS.get(job.xy_origin, (0.0, 0.0))
+    x_low, y_low = -job.material.width * fx, -job.material.height * fy
     z_top = job.material.thickness if job.z_zero == "bottom" else 0.0
     margin = tool.diameter / 2 + 0.01
     keepouts = [

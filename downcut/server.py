@@ -55,6 +55,8 @@ def create_app() -> FastAPI:
         "/api/layout": api.layout_vectors,
         "/api/nest": api.nest_vectors,
         "/api/validate": api.validate_vectors,
+        "/api/scan": api.scan_vectors,
+        "/api/trim-overlap": api.trim_overlap,
         "/api/export-vectors": api.export_vectors,
         "/api/inlay": api.make_inlay,
         "/api/template/make": api.make_template,
