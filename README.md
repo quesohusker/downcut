@@ -27,7 +27,7 @@ Downcut starts a small local server and opens in your web browser. It uses no ac
 
 The builds are not signed, so your computer will warn you the first time:
 
-- **Mac:** Open Downcut.app once and dismiss the warning. Then go to System Settings, Privacy & Security, and choose Open Anyway.
+- **Mac:** Open Downcut.app once. Press **Done** on the warning, not Move to Trash. Then go to System Settings, Privacy & Security, scroll down, and press **Open Anyway**. Press **Open** when macOS asks again.
 - **Windows:** On the SmartScreen warning, choose More info, then Run anyway.
 
 `SHA256SUMS.txt` on the Releases page lets you check each download.

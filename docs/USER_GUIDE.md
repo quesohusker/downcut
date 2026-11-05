@@ -46,7 +46,7 @@ Download your build from the [Releases page](https://github.com/quesohusker/down
 
 The builds are not signed, so your computer warns you the first time.
 
-- **Mac:** Open the app once and dismiss the warning. Then go to System Settings, Privacy & Security, and choose Open Anyway.
+- **Mac:** Open the app once. Press **Done** on the warning, not Move to Trash. Then go to System Settings, Privacy & Security, scroll down, and press **Open Anyway**. Press **Open** when macOS asks again.
 - **Windows:** On the SmartScreen warning, choose More info, then Run anyway.
 
 Downcut starts a small local server and opens in your web browser. It needs no account and no internet. It serves only your own computer, at an address such as `http://127.0.0.1:8765`.
