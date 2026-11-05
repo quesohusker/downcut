@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kerfline</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="menubar">
+  <div class="brand">Kerfline</div>
+  <nav class="menus" id="menus" aria-label="Main menu">
+    <div class="menu">
+      <button class="menu-title">File</button>
+      <div class="menu-list">
+        <button data-click="btn-new">New</button>
+        <button data-click="btn-open">Open</button>
+        <button data-click="btn-save">Save</button>
+        <hr>
+        <button id="btn-sample">Open sample job</button>
+        <button data-click="btn-import">Import art</button>
+        <button data-click="export-svg">Export vectors as SVG</button>
+        <button data-click="export-dxf">Export vectors as DXF</button>
+        <hr>
+        <button data-click="btn-sheet">Setup sheet</button>
+        <hr>
+        <button data-run="quit">Quit Kerfline</button>
+      </div>
+    </div>
+    <div class="menu">
+      <button class="menu-title">Edit</button>
+      <div class="menu-list">
+        <button data-click="btn-undo">Undo</button>
+        <button data-click="btn-redo">Redo</button>
+        <hr>
+        <button data-run="select-all">Select all</button>
+        <button data-click="op-duplicate">Duplicate</button>
+        <button data-click="op-delete">Delete</button>
+        <hr>
+        <button data-form="check">Check vectors</button>
+      </div>
+    </div>
+    <div class="menu">
+      <button class="menu-title">Machine</button>
+      <div class="menu-list">
+        <button data-form="job">Job setup</button>
+        <button data-click="btn-tools">Tool database</button>
+        <button data-click="btn-posts">Machine posts</button>
+        <hr>
+        <button data-click="btn-machine">Import Vectric file</button>
+      </div>
+    </div>
+    <div class="menu">
+      <button class="menu-title">Toolpaths</button>
+      <div class="menu-list">
+        <button data-click="btn-preview">Preview toolpaths</button>
+        <button data-click="btn-recalc">Recalculate</button>
+        <button data-click="btn-export">Save toolpaths</button>
+        <hr>
+        <button data-click="op-merge">Merge picked toolpaths</button>
+        <button data-click="template-save">Save template</button>
+        <button data-click="template-apply">Apply template</button>
+      </div>
+    </div>
+    <div class="menu">
+      <button class="menu-title">View</button>
+      <div class="menu-list">
+        <button data-run="view-2d">2D view <kbd>F2</kbd></button>
+        <button data-run="view-3d">3D view <kbd>F3</kbd></button>
+        <hr>
+        <button data-run="layout-design">Design layout <kbd>F11</kbd></button>
+        <button data-run="layout-machine">Toolpath layout <kbd>F12</kbd></button>
+        <button data-run="layout-both">Show both panels</button>
+        <hr>
+        <button data-click="btn-fit">Fit to sheet</button>
+      </div>
+    </div>
+    <div class="menu">
+      <button class="menu-title">Help</button>
+      <div class="menu-list">
+        <button data-run="shortcuts">Keyboard shortcuts</button>
+        <button data-run="about">About Kerfline</button>
+      </div>
+    </div>
+  </nav>
+  <div class="spacer"></div>
+  <label class="quick">Layer <select id="quick-layer" aria-label="Active layer"></select></label>
+</header>
+
+<main class="shell">
+  <aside class="dock left" id="dock-left">
+    <button class="dock-rail" id="unpin-left" title="Show the Drawing panel">Drawing</button>
+    <div class="dock-body">
+      <div class="dock-tabs">
+        <span class="dock-name">Drawing</span>
+        <button class="pin" id="pin-left" title="Hide this panel" aria-label="Hide the Drawing panel">&#8249;</button>
+      </div>
+      <section class="panel" id="drawing-home">
+        <h2>File operations</h2>
+        <div class="tool-grid">
+          <button id="btn-new">New file</button>
+          <button id="btn-open">Open file</button>
+          <button id="btn-save">Save file</button>
+          <button id="open-job" data-form="job">Job setup</button>
+          <button id="btn-import" title="Import SVG, DXF, PDF, AI, or EPS art">Import art</button>
+          <button id="btn-undo">Undo</button>
+          <button id="btn-redo">Redo</button>
+        </div>
+        <h2>Create vectors</h2>
+        <div class="tool-grid">
+          <button data-tool="rectangle" title="Rectangle (R)" aria-label="Rectangle"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1"/></svg></button>
+          <button data-tool="ellipse" title="Ellipse (E)" aria-label="Ellipse"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="7"/></svg></button>
+          <button data-tool="polygon" title="Polygon (P)" aria-label="Polygon"><svg viewBox="0 0 24 24"><path d="M12 3l8 6-3 10H7L4 9z"/></svg></button>
+          <button data-tool="star" title="Star (S)" aria-label="Star"><svg viewBox="0 0 24 24"><path d="M12 3l2.7 6 6.3.7-4.7 4.3 1.3 6.5L12 17.3 6.4 20.5l1.3-6.5L3 9.7 9.3 9z"/></svg></button>
+          <button data-tool="line" title="Line (L)" aria-label="Line"><svg viewBox="0 0 24 24"><path d="M5 19L19 5"/></svg></button>
+          <button data-tool="polyline" title="Polyline (O)" aria-label="Polyline"><svg viewBox="0 0 24 24"><path d="M4 18l6-9 5 6 5-10"/></svg></button>
+          <button data-tool="curve" title="Curve (C)" aria-label="Curve"><svg viewBox="0 0 24 24"><path d="M4 18c4-14 8-14 8-6s4 8 8-6"/></svg></button>
+          <button data-tool="arc" title="Arc (A)" aria-label="Arc"><svg viewBox="0 0 24 24"><path d="M4 18a9 9 0 0 1 16 0"/></svg></button>
+          <button data-tool="text" title="Text (T)" aria-label="Text"><svg viewBox="0 0 24 24"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg></button>
+          <button data-tool="measure" title="Dimension (M)" aria-label="Dimension"><svg viewBox="0 0 24 24"><path d="M4 8v8M20 8v8M4 12h16"/></svg></button>
+        </div>
+        <h2>Transform objects</h2>
+        <div class="tool-grid">
+          <button data-tool="select" title="Select (V)" aria-label="Select"><svg viewBox="0 0 24 24"><path d="M5 3l14 9-6 1.6L10 20z"/></svg></button>
+          <button id="open-transform" data-form="transform">Move, scale, rotate</button>
+          <button id="op-mirror-h">Mirror left and right</button>
+          <button id="op-mirror-v">Mirror up and down</button>
+          <button id="op-center">Center on sheet</button>
+          <button id="op-duplicate">Duplicate (Cmd D)</button>
+          <button id="op-delete">Delete</button>
+        </div>
+        <h2>Edit vectors</h2>
+        <div class="tool-grid">
+          <button data-tool="node" title="Edit nodes (N)" aria-label="Edit nodes"><svg viewBox="0 0 24 24"><path d="M5 18L12 6l7 12"/><rect x="3" y="16" width="4" height="4"/><rect x="10" y="4" width="4" height="4"/><rect x="17" y="16" width="4" height="4"/></svg></button>
+          <button data-tool="trim" title="Trim (X)" aria-label="Trim"><svg viewBox="0 0 24 24"><path d="M4 12h6M14 12h6M12 4v16"/></svg></button>
+          <button data-tool="extend" title="Extend (J)" aria-label="Extend"><svg viewBox="0 0 24 24"><path d="M4 12h12M13 9l3 3-3 3M20 4v16"/></svg></button>
+          <button id="op-weld">Weld</button>
+          <button id="op-subtract">Subtract</button>
+          <button id="op-intersect">Intersect</button>
+          <button id="open-clean" data-form="clean">Join, smooth, and clean up</button>
+          <button id="open-corners" data-form="corners">Fillet and bone corners</button>
+        </div>
+        <h2>Offset and layout</h2>
+        <div class="tool-grid">
+          <button id="open-offset" data-form="offset">Offset</button>
+          <button id="open-arrays" data-form="arrays">Grid and circular arrays</button>
+          <button id="open-path" data-form="path">Copy along a path, or trim to a boundary</button>
+          <button id="open-nest" data-form="nest">Nesting</button>
+        </div>
+        <h2>Check</h2>
+        <div class="tool-grid">
+          <button id="open-check" data-form="check">Check vectors and export</button>
+        </div>
+      </section>
+
+      <section class="panel" id="form-host" hidden>
+        <div class="form-head">
+          <h3 id="form-title"></h3>
+          <button id="form-close">Close</button>
+        </div>
+
+        <div data-form="job" hidden>
+          <h2>Job size</h2>
+          <div class="grid">
+            <label>Width <input id="job-width" type="number" step="any" min="0"></label>
+            <label>Height <input id="job-height" type="number" step="any" min="0"></label>
+            <label>Thickness <input id="job-thickness" type="number" step="any" min="0"></label>
+            <label>Units
+              <select id="job-units"><option value="in">Inches</option><option value="mm">Millimeters</option></select>
+            </label>
+          </div>
+          <h2>Zero position</h2>
+          <div class="grid">
+            <label>Z zero
+              <select id="job-z"><option value="top">Material top</option><option value="bottom">Spoilboard</option></select>
+            </label>
+            <label>XY zero
+              <select id="job-xy"><option value="lower_left">Lower left</option><option value="center">Center</option></select>
+            </label>
+            <label>Safe Z <input id="job-safe" type="number" step="any" min="0"></label>
+            <label>Spoilboard allowance <input id="job-allow" type="number" step="any" min="0"></label>
+          </div>
+          <p class="hint">Allowance is how far a cut may go past the bottom of the material. The G-code checker blocks anything deeper.</p>
+          <h2>Machine</h2>
+          <label class="stack">Machine <select id="job-machine"></select></label>
+          <p class="hint" id="machine-hint"></p>
+          <div class="row">
+            <button id="btn-machine" title="Vectric post processor (.pp) or tool database (.vtdb)">Import Vectric file</button>
+            <button id="btn-tools">Tools</button>
+            <button id="btn-posts">Machine posts</button>
+          </div>
+          <label class="check"><input type="checkbox" id="job-arcs"> Write arcs (G2, G3)</label>
+          <h2>Tiling</h2>
+          <label class="check"><input type="checkbox" id="tile-on"> Split a job larger than the bed</label>
+          <div class="grid">
+            <label>Tile width <input id="tile-w" type="number" step="any" min="0"></label>
+            <label>Tile height <input id="tile-h" type="number" step="any" min="0"></label>
+            <label>Overlap <input id="tile-overlap" type="number" step="any" min="0"></label>
+          </div>
+          <p class="hint">Each tile gets its own files. Reset your zero on the sheet before you start each tile.</p>
+        </div>
+
+        <div data-form="text" hidden>
+          <label class="stack">Words <textarea id="text-value" rows="3">SAMPLE</textarea></label>
+          <label class="stack">Font <select id="text-font"></select></label>
+          <div class="grid">
+            <label>Cap height <input id="text-height" type="number" step="any" min="0"></label>
+            <label>Align
+              <select id="text-align"><option value="center">Center</option><option value="left">Left</option><option value="right">Right</option></select>
+            </label>
+            <label>Letter spacing <input id="text-tracking" type="number" step="any" value="0"></label>
+            <label>Lift off curve <input id="text-raise" type="number" step="any" value="0"></label>
+          </div>
+          <label class="check"><input type="checkbox" id="text-flip"> Flip to the other side of the curve</label>
+          <div class="row">
+            <button id="text-add">Add text to sheet</button>
+            <button id="text-path">Add text on path</button>
+          </div>
+          <div id="kern-tools" hidden>
+            <p class="hint">Move pairs apart or closer. Rotating, mirroring, or resizing the text ends this.</p>
+            <div id="kern-list"></div>
+          </div>
+        </div>
+
+        <div data-form="transform" hidden>
+          <div id="selection-empty" class="hint">Select one or more vectors on the sheet.</div>
+          <div id="selection-tools" hidden>
+            <h2 id="selection-title">Selection</h2>
+            <div class="grid">
+              <label>X <input id="sel-x" type="number" step="any"></label>
+              <label>Y <input id="sel-y" type="number" step="any"></label>
+              <label>Width <input id="sel-w" type="number" step="any" min="0"></label>
+              <label>Height <input id="sel-h" type="number" step="any" min="0"></label>
+              <label>Rotate by (deg) <input id="sel-rot" type="number" step="any" value="0"></label>
+            </div>
+            <label class="check"><input type="checkbox" id="sel-lock" checked> Keep proportions</label>
+            <div class="row"><button id="op-rotate">Rotate</button></div>
+          </div>
+        </div>
+
+        <div data-form="offset" hidden>
+          <div class="grid">
+            <label>Offset by <input id="sel-offset" type="number" step="any" value="0.125"></label>
+          </div>
+          <p class="hint">A positive value grows the shape. A negative value shrinks it.</p>
+          <div class="row"><button id="op-offset">Offset</button></div>
+        </div>
+
+        <div data-form="clean" hidden>
+          <div class="grid">
+            <label>Tolerance <input id="edit-tolerance" type="number" step="any" min="0" value="0.01"></label>
+          </div>
+          <div class="row">
+            <button id="op-join">Join</button>
+            <button id="op-close">Close</button>
+            <button id="op-smooth">Smooth</button>
+            <button id="op-simplify">Simplify</button>
+            <button id="op-dedupe">Remove duplicates</button>
+          </div>
+        </div>
+
+        <div data-form="corners" hidden>
+          <div class="grid">
+            <label>Fillet radius <input id="edit-radius" type="number" step="any" min="0" value="0.125"></label>
+            <label>Bone tool diameter <input id="edit-bone" type="number" step="any" min="0" value="0.25"></label>
+            <label>Bone corners
+              <select id="edit-side"><option value="inside">Pocket corners</option><option value="outside">Part corners</option></select>
+            </label>
+          </div>
+          <div class="row">
+            <button id="op-fillet">Fillet</button>
+            <button id="op-dogbone">Dog-bone</button>
+            <button id="op-tbone">T-bone</button>
+          </div>
+        </div>
+
+        <div data-form="path" hidden>
+          <p class="hint" id="ref-status"></p>
+          <div class="row"><button id="ref-set">Set as path</button></div>
+          <div class="grid">
+            <label>Copies on path <input id="path-count" type="number" step="1" min="1" value="5"></label>
+            <label>Trim keeps
+              <select id="edit-keep"><option value="inside">Inside</option><option value="outside">Outside</option></select>
+            </label>
+          </div>
+          <div class="row">
+            <button id="path-add">Copies along path</button>
+            <button id="op-boundary">Trim to boundary</button>
+          </div>
+        </div>
+
+        <div data-form="arrays" hidden>
+          <h2>Grid</h2>
+          <div class="grid">
+            <label>Columns <input id="grid-x" type="number" step="1" min="1" value="3"></label>
+            <label>Rows <input id="grid-y" type="number" step="1" min="1" value="2"></label>
+            <label>Step X <input id="grid-step-x" type="number" step="any" value="2"></label>
+            <label>Step Y <input id="grid-step-y" type="number" step="any" value="2"></label>
+          </div>
+          <div class="row"><button id="grid-add">Grid array</button></div>
+          <h2>Circular</h2>
+          <div class="grid">
+            <label>Copies <input id="circle-count" type="number" step="1" min="2" value="6"></label>
+            <label>Sweep (deg) <input id="circle-sweep" type="number" step="any" value="360"></label>
+            <label>Center X <input id="circle-x" type="number" step="any" value="12"></label>
+            <label>Center Y <input id="circle-y" type="number" step="any" value="9"></label>
+          </div>
+          <label class="check"><input type="checkbox" id="circle-rotate" checked> Rotate each copy</label>
+          <div class="row"><button id="circle-add">Circular array</button></div>
+        </div>
+
+        <div data-form="nest" hidden>
+          <div class="grid">
+            <label>Gap <input id="nest-gap" type="number" step="any" min="0" value="0.3"></label>
+            <label>Edge margin <input id="nest-margin" type="number" step="any" min="0" value="0.25"></label>
+            <label>Rotate
+              <select id="nest-rotate"><option value="90">Every 90 deg</option><option value="45">Every 45 deg</option><option value="180">Every 180 deg</option><option value="0">Never</option></select>
+            </label>
+          </div>
+          <div class="row"><button id="nest-run">Nest selected parts</button></div>
+        </div>
+
+        <div data-form="check" hidden>
+          <div class="row">
+            <button id="check-run">Check vectors</button>
+            <button id="export-svg">Export SVG</button>
+            <button id="export-dxf">Export DXF</button>
+          </div>
+          <ul class="issues" id="issue-list"></ul>
+          <h2>Dimensions</h2>
+          <ul class="issues" id="dimension-list"></ul>
+        </div>
+      </section>
+    </div>
+  </aside>
+
+  <section class="stage">
+    <div class="view-bar">
+      <div class="view-tabs" role="tablist">
+        <button id="view-2d" role="tab">2D View</button>
+        <button id="view-3d" role="tab">3D View</button>
+      </div>
+      <div class="view-options" id="options-2d">
+        <label title="Show toolpaths"><input type="checkbox" id="show-paths" checked> Paths</label>
+        <label title="Show rapid moves"><input type="checkbox" id="show-rapids"> Rapids</label>
+        <label title="Show rulers"><input type="checkbox" id="show-rulers" checked> Rulers</label>
+        <label title="Snap to nodes, centers, and guides"><input type="checkbox" id="snap-smart" checked> Snap</label>
+        <label title="Snap to a grid"><input type="checkbox" id="snap-grid"> Grid</label>
+        <input type="number" id="snap-step" step="any" min="0" value="0.25" aria-label="Grid step" title="Grid step">
+        <button id="btn-fit">Fit</button>
+      </div>
+      <div class="view-options" id="options-3d" hidden>
+        <button id="view-orbit">3D orbit</button>
+        <button id="view-shaded">Shaded top view</button>
+        <span id="preview-state" class="hint"></span>
+      </div>
+    </div>
+    <div class="view-area" id="stage-2d">
+      <canvas id="canvas"></canvas>
+    </div>
+    <div class="view-area" id="stage-3d" hidden>
+      <canvas id="orbit-canvas"></canvas>
+      <img id="preview-image" alt="Simulated cut of the job, read from the G-code" hidden>
+    </div>
+  </section>
+
+  <aside class="dock right" id="dock-right">
+    <button class="dock-rail" id="unpin-right" title="Show the Toolpaths panel">Toolpaths</button>
+    <div class="dock-body">
+      <div class="dock-tabs" role="tablist">
+        <button data-dock="paths" role="tab">Toolpaths</button>
+        <button data-dock="layers" role="tab">Layers</button>
+        <button class="pin" id="pin-right" title="Hide this panel" aria-label="Hide the Toolpaths panel">&#8250;</button>
+      </div>
+
+      <section class="panel" id="tab-paths">
+        <div id="paths-home">
+          <h2>Toolpath operations</h2>
+          <div class="tool-grid" id="new-op"></div>
+          <div class="tool-grid spaced">
+            <button id="btn-preview">Preview toolpaths</button>
+            <button id="btn-sheet">Setup sheet</button>
+            <button id="op-merge" title="Merge the toolpaths you picked">Merge picked toolpaths</button>
+            <button id="template-save" title="Save the picked toolpaths, or all of them">Save template</button>
+            <button id="template-apply" title="Add toolpaths from a template to the selection or matching layers">Apply template</button>
+          </div>
+          <h2>Toolpaths</h2>
+          <ul class="ops" id="op-list"></ul>
+          <div id="op-summary" class="hint"></div>
+          <div class="row">
+            <button id="btn-recalc">Recalculate</button>
+            <button id="btn-export" class="primary">Save Toolpaths</button>
+          </div>
+          <details id="report-box">
+            <summary>Checker report</summary>
+            <div id="preview-report"></div>
+          </details>
+        </div>
+        <div id="op-form"></div>
+      </section>
+
+      <section class="panel" id="tab-layers" hidden>
+        <h2>Layers</h2>
+        <ul class="layers" id="layer-list"></ul>
+        <div class="row">
+          <input id="layer-name" placeholder="New layer name">
+          <button id="layer-add">Add</button>
+          <button id="layer-move">Move selection here</button>
+          <button id="layer-select">Select layer</button>
+          <button id="layer-remove">Remove layer</button>
+        </div>
+        <p class="hint">A keep-out layer marks clamps and other no-cut areas. Nesting avoids them and the checker blocks cuts inside them.</p>
+      </section>
+    </div>
+  </aside>
+</main>
+
+<footer class="status">
+  <span id="status-pos"></span>
+  <span id="status-msg" role="status"></span>
+  <span id="status-job"></span>
+  <span id="status-time"></span>
+</footer>
+
+<dialog id="export-dialog">
+  <header><h2>Save Toolpaths</h2><button data-close>Close</button></header>
+  <div class="dialog-body">
+    <div class="grid">
+      <label>Machine post <select id="post-select"></select></label>
+      <label>File name <input id="job-title" value="job"></label>
+    </div>
+    <p class="hint">Each tool gets its own file. A file that fails the checker cannot be saved. Air-cut every new program before you cut material.</p>
+    <div id="export-list"></div>
+  </div>
+</dialog>
+
+<dialog id="sheet-dialog">
+  <header><h2>Setup sheet</h2>
+    <div class="row">
+      <button id="sheet-print">Print</button>
+      <button id="sheet-save" class="primary">Save</button>
+      <button data-close>Close</button>
+    </div>
+  </header>
+  <iframe id="sheet-frame" title="Operator setup sheet"></iframe>
+</dialog>
+
+<dialog id="tools-dialog">
+  <header><h2>Tool database</h2><button data-close>Close</button></header>
+  <div class="dialog-body split">
+    <div>
+      <p class="hint" id="tool-note" hidden></p>
+      <div class="grid">
+        <label>Material <select id="filter-material"></select></label>
+        <label>Machine <select id="filter-machine"></select></label>
+      </div>
+      <ul class="picker" id="tool-list"></ul>
+      <div class="row">
+        <button id="tool-add">Add a copy</button>
+        <button id="tool-remove" class="danger">Delete</button>
+      </div>
+    </div>
+    <div id="tool-form"></div>
+  </div>
+</dialog>
+
+<dialog id="posts-dialog">
+  <header><h2>Machine posts</h2><button data-close>Close</button></header>
+  <div class="dialog-body split">
+    <div>
+      <ul class="picker" id="post-list"></ul>
+      <div class="row">
+        <button id="post-new">New</button>
+        <button id="post-import">Import .pp</button>
+      </div>
+      <p class="hint">Posts use the Vectric .pp format. Kerfline runs your file and then checks the G-code it writes.</p>
+    </div>
+    <div id="post-editor" hidden>
+      <textarea id="post-source" rows="18" spellcheck="false" aria-label="Post text"></textarea>
+      <div class="row">
+        <button id="post-check" class="primary">Save and test</button>
+        <button id="post-export">Export .pp</button>
+        <button id="post-remove" class="danger">Delete</button>
+      </div>
+      <div id="post-result"></div>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="shortcuts-dialog">
+  <header><h2>Keyboard shortcuts</h2><button data-close>Close</button></header>
+  <div class="dialog-body keys">
+    <div><kbd>F2</kbd> 2D view</div>
+    <div><kbd>F3</kbd> 3D view</div>
+    <div><kbd>F11</kbd> Design layout</div>
+    <div><kbd>F12</kbd> Toolpath layout</div>
+    <div><kbd>V</kbd> Select</div>
+    <div><kbd>R</kbd> Rectangle</div>
+    <div><kbd>E</kbd> Ellipse</div>
+    <div><kbd>P</kbd> Polygon</div>
+    <div><kbd>S</kbd> Star</div>
+    <div><kbd>T</kbd> Text</div>
+    <div><kbd>L</kbd> Line</div>
+    <div><kbd>O</kbd> Polyline</div>
+    <div><kbd>C</kbd> Curve</div>
+    <div><kbd>A</kbd> Arc</div>
+    <div><kbd>N</kbd> Edit nodes</div>
+    <div><kbd>X</kbd> Trim</div>
+    <div><kbd>J</kbd> Extend</div>
+    <div><kbd>M</kbd> Dimension</div>
+    <div><kbd>Cmd Z</kbd> Undo</div>
+    <div><kbd>Shift Cmd Z</kbd> Redo</div>
+    <div><kbd>Cmd D</kbd> Duplicate</div>
+    <div><kbd>Cmd A</kbd> Select all</div>
+    <div><kbd>Space</kbd> Hold and drag to pan</div>
+    <div><kbd>Esc</kbd> Cancel and clear the selection</div>
+  </div>
+</dialog>
+
+<dialog id="about-dialog">
+  <header><h2>About Kerfline</h2><button data-close>Close</button></header>
+  <div class="dialog-body">
+    <p id="about-version"></p>
+    <p>CNC CAD/CAM for routers. Kerfline is not made by or connected with Vectric.</p>
+    <p class="hint">The Hershey Fonts were originally created by Dr. A. V. Hershey while working at the U. S. National Bureau of Standards. The format of the font data in this distribution was originally created by James Hurt, Cognition, Inc.</p>
+    <p class="hint">PDF reading uses pypdf. Geometry uses Shapely and GEOS. Text shaping uses HarfBuzz and fontTools.</p>
+  </div>
+</dialog>
+
+<dialog id="safety-dialog">
+  <header><h2>Before you start</h2></header>
+  <div class="dialog-body">
+    <p><strong>Kerfline is test software. It has not been run on a real CNC machine by its author.</strong></p>
+    <p>Bad G-code can break bits, ruin material, damage machines, and hurt people. The built-in checker cannot catch every mistake.</p>
+    <p>Read every file before you run it. Air-cut it above the material first. Keep a hand near the stop. Feeds and speeds are starting values only. You use this software at your own risk.</p>
+    <div class="row"><button id="safety-ok" class="primary">I understand</button></div>
+  </div>
+</dialog>
+
+<script src="platform.js"></script>
+<script src="icons.js"></script>
+<script src="orbit.js"></script>
+<script src="pen.js"></script>
+<script src="panels.js"></script>
+<script src="shell.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

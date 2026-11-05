@@ -1,0 +1,14 @@
+numpy
+scipy
+shapely
+svgelements
+ezdxf
+fonttools
+uharfbuzz
+pillow
+pypdf
+Hershey-Fonts
+fastapi
+uvicorn
+pytest
+httpx

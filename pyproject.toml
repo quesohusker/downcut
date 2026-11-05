@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kerfline"
+dynamic = ["version"]
+description = "2D and V-carve CNC CAD/CAM for routers, with a checked G-code output"
+readme = "README.md"
+license = "LicenseRef-PolyForm-Strict-1.0.0"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "scipy",
+    "shapely",
+    "svgelements",
+    "ezdxf",
+    "fonttools",
+    "uharfbuzz",
+    "pillow",
+    "pypdf",
+    "Hershey-Fonts",
+    "fastapi",
+    "uvicorn",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "httpx"]
+
+[project.scripts]
+kerfline = "kerfline.__main__:main"
+
+[tool.setuptools]
+packages = ["kerfline", "kerfline.toolpaths"]
+
+[tool.setuptools.package-data]
+kerfline = ["tooldb.json", "web/*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "kerfline.__version__"}
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

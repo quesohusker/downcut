@@ -1,0 +1,10 @@
+[
+  {"id": "em-250", "name": "1/4 in end mill", "kind": "endmill", "diameter": 6.35, "feed": 2032, "plunge": 508, "rpm": 18000, "stepdown": 3.175, "stepover": 2.54, "flute_length": 25.4},
+  {"id": "em-125", "name": "1/8 in end mill", "kind": "endmill", "diameter": 3.175, "feed": 1270, "plunge": 381, "rpm": 18000, "stepdown": 1.5875, "stepover": 1.27, "flute_length": 12.7},
+  {"id": "em-500", "name": "1/2 in end mill", "kind": "endmill", "diameter": 12.7, "feed": 2540, "plunge": 635, "rpm": 16000, "stepdown": 6.35, "stepover": 5.08, "flute_length": 31.75},
+  {"id": "bn-250", "name": "1/4 in ball nose", "kind": "ballnose", "diameter": 6.35, "feed": 1524, "plunge": 508, "rpm": 18000, "stepdown": 3.175, "stepover": 1.27, "flute_length": 19.05},
+  {"id": "vb-60", "name": "60 deg V-bit, 1/2 in", "kind": "vbit", "diameter": 12.7, "angle": 60, "feed": 1524, "plunge": 508, "rpm": 18000, "stepdown": 3.175, "flute_length": 12.7},
+  {"id": "vb-90", "name": "90 deg V-bit, 1/2 in", "kind": "vbit", "diameter": 12.7, "angle": 90, "feed": 1524, "plunge": 508, "rpm": 18000, "stepdown": 3.175, "flute_length": 12.7},
+  {"id": "dr-125", "name": "1/8 in drill", "kind": "drill", "diameter": 3.175, "feed": 381, "plunge": 381, "rpm": 12000, "stepdown": 3.175, "flute_length": 38.1},
+  {"id": "dr-250", "name": "1/4 in drill", "kind": "drill", "diameter": 6.35, "feed": 381, "plunge": 381, "rpm": 12000, "stepdown": 6.35, "flute_length": 63.5}
+]
