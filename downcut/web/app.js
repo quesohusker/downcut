@@ -914,6 +914,12 @@ function startOperation(kind) {
 
 function editOperation(op) {
   const params = { ...op.params };
+  const spec = OPERATIONS[op.kind];
+  for (const field of [...spec.fields, ...(spec.hidden ? [] : REPEAT_FIELDS)]) {
+    if (params[field.key] === undefined) {
+      params[field.key] = typeof field.initial === 'function' ? field.initial() : field.initial;
+    }
+  }
   state.draft = { ...op, params };
   state.activeOp = op.id;
   renderForm();

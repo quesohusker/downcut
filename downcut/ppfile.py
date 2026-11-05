@@ -530,49 +530,49 @@ UNITS = "INCHES"
 LINE_ENDING = "[10]"
 
 VAR SPINDLE_SPEED = [S|A|S|1.0]
-VAR FEED_RATE = [F|C|F|1.1]
-VAR X_POSITION = [X|C|X|1.4]
-VAR Y_POSITION = [Y|C|Y|1.4]
-VAR Z_POSITION = [Z|C|Z|1.4]
-VAR X_HOME_POSITION = [XH|A|X|1.4]
-VAR Y_HOME_POSITION = [YH|A|Y|1.4]
-VAR Z_HOME_POSITION = [ZH|A|Z|1.4]
-VAR ARC_CENTRE_I_INC_POSITION = [I|A|I|1.4]
-VAR ARC_CENTRE_J_INC_POSITION = [J|A|J|1.4]
+VAR FEED_RATE = [F|C| F|1.1]
+VAR X_POSITION = [X|C| X|1.4]
+VAR Y_POSITION = [Y|C| Y|1.4]
+VAR Z_POSITION = [Z|C| Z|1.4]
+VAR X_HOME_POSITION = [XH|A| X|1.4]
+VAR Y_HOME_POSITION = [YH|A| Y|1.4]
+VAR Z_HOME_POSITION = [ZH|A| Z|1.4]
+VAR ARC_CENTRE_I_INC_POSITION = [I|A| I|1.4]
+VAR ARC_CENTRE_J_INC_POSITION = [J|A| J|1.4]
 
 begin HEADER
 "([TOOLPATHS_OUTPUT])"
 "(Tool: [TOOLNAME])"
 "G90 G94 G17 G91.1"
 "G20"
-"G0 [ZH]"
+"G0[ZH]"
 "[S] M3"
 "G4 P3"
 
 begin RAPID_MOVE
-"G0 [X] [Y] [Z]"
+"G0[X][Y][Z]"
 
 begin FIRST_FEED_MOVE
-"G1 [X] [Y] [Z] [F]"
+"G1[X][Y][Z][F]"
 
 begin FEED_MOVE
-"G1 [X] [Y] [Z]"
+"G1[X][Y][Z]"
 
 begin FIRST_CW_ARC_MOVE
-"G2 [X] [Y] [I] [J] [F]"
+"G2[X][Y][I][J][F]"
 
 begin CW_ARC_MOVE
-"G2 [X] [Y] [I] [J]"
+"G2[X][Y][I][J]"
 
 begin FIRST_CCW_ARC_MOVE
-"G3 [X] [Y] [I] [J] [F]"
+"G3[X][Y][I][J][F]"
 
 begin CCW_ARC_MOVE
-"G3 [X] [Y] [I] [J]"
+"G3[X][Y][I][J]"
 
 begin FOOTER
-"G0 [ZH]"
-"G0 [XH] [YH]"
+"G0[ZH]"
+"G0[XH][YH]"
 "M5"
 "M30"
 """

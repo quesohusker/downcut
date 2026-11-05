@@ -59,7 +59,7 @@ The builds are not signed, so your computer will warn you the first time:
 - Import a Vectric `.vtdb` tool database, with tools, feeds, materials, and bed size
 - Arc output (G2 and G3), keep-out zones, and an operator setup sheet
 
-See [FEATURES.md](FEATURES.md) for the full list and what is planned. Earlier test builds used the name Kerfline, and Downcut still opens those project files.
+Read the **[User Guide](docs/USER_GUIDE.md)** for how to use everything. See [FEATURES.md](FEATURES.md) for the full list and what is planned. Earlier test builds used the name Kerfline, and Downcut still opens those project files.
 
 ## The G-code checker
 

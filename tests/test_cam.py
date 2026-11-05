@@ -562,6 +562,13 @@ def test_pp_inch_post_scales_a_metric_job(job):
     assert report.x_range[1] == pytest.approx(100 + 40 + 3.175, abs=0.05)
 
 
+def test_starter_post_has_no_stray_spaces(job):
+    post_job(job, STARTER)
+    text = export(job, build_all(job), "mine")[0].text
+    moves = [line for line in text.splitlines() if line.startswith(("G0", "G1", "G2", "G3"))]
+    assert moves and not any("  " in line for line in moves)
+
+
 def test_pp_multiplier_writes_inches_per_second(job):
     source = GRBL_STYLE.replace("VAR FEED_RATE = [F|C|F|1.1]", "VAR FEED_RATE = [F|C|F|1.2|0.01666]")
     post_job(job, source)
