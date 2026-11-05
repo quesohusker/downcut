@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "kerfline"
+name = "downcut"
 dynamic = ["version"]
 description = "2D and V-carve CNC CAD/CAM for routers, with a checked G-code output"
 readme = "README.md"
@@ -29,16 +29,16 @@ dependencies = [
 dev = ["pytest", "httpx"]
 
 [project.scripts]
-kerfline = "kerfline.__main__:main"
+downcut = "downcut.__main__:main"
 
 [tool.setuptools]
-packages = ["kerfline", "kerfline.toolpaths"]
+packages = ["downcut", "downcut.toolpaths"]
 
 [tool.setuptools.package-data]
-kerfline = ["tooldb.json", "web/*"]
+downcut = ["tooldb.json", "web/*"]
 
 [tool.setuptools.dynamic]
-version = {attr = "kerfline.__version__"}
+version = {attr = "downcut.__version__"}
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

@@ -5,11 +5,11 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from kerfline.gcode import export
-from kerfline.model import Job, Material, default_tools
-from kerfline.simulate import simulate
-from kerfline.toolpaths import build_all
-from kerfline.verify import check, limits_for
+from downcut.gcode import export
+from downcut.model import Job, Material, default_tools
+from downcut.simulate import simulate
+from downcut.toolpaths import build_all
+from downcut.verify import check, limits_for
 
 
 @pytest.fixture

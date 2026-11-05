@@ -4,11 +4,11 @@ import numpy as np
 import pytest
 from shapely.geometry import Point, Polygon
 
-from kerfline.geometry import region
-from kerfline.model import Operation
-from kerfline.shapes import circle, rectangle
-from kerfline.textvec import text_vectors
-from kerfline.toolpaths.base import depth_levels
+from downcut.geometry import region
+from downcut.model import Operation
+from downcut.shapes import circle, rectangle
+from downcut.textvec import text_vectors
+from downcut.toolpaths.base import depth_levels
 from support import ARIAL
 
 
@@ -59,7 +59,7 @@ def test_outside_profile_leaves_part_at_true_size(job, run):
 
 
 def test_climb_direction_is_clockwise_outside_and_ccw_inside(job):
-    from kerfline.toolpaths.profile import offset_rings
+    from downcut.toolpaths.profile import offset_rings
 
     shape = region([rectangle(0, 0, 50, 50)])
     outside = offset_rings(shape, "outside", 3.0, True)[0]
@@ -69,7 +69,7 @@ def test_climb_direction_is_clockwise_outside_and_ccw_inside(job):
 
 
 def test_conventional_reverses_direction(job):
-    from kerfline.toolpaths.profile import offset_rings
+    from downcut.toolpaths.profile import offset_rings
 
     shape = region([rectangle(0, 0, 50, 50)])
     assert signed_area(offset_rings(shape, "outside", 3.0, False)[0]) > 0
@@ -148,7 +148,7 @@ def test_pocket_clears_floor_and_keeps_island(job, run):
 
 
 def test_pocket_tool_too_large_warns(job):
-    from kerfline.toolpaths import build_all
+    from downcut.toolpaths import build_all
 
     add(job, "pocket", "em-500", [rectangle(10, 10, 8, 8)], depth=3.0)
     paths = build_all(job)
@@ -238,7 +238,7 @@ def test_vcarve_flat_bottom_with_clearing_tool(job, run):
 
 
 def test_vcarve_without_clearing_tool_warns(job):
-    from kerfline.toolpaths import build_all
+    from downcut.toolpaths import build_all
 
     add(job, "vcarve", "vb-90", [rectangle(50, 50, 120, 60)], flat_depth=5.0)
     paths = build_all(job)
@@ -278,7 +278,7 @@ def test_flat_bottom_text_keeps_letter_shape(job, run):
 
 
 def test_cut_deeper_than_flutes_warns(job):
-    from kerfline.toolpaths import build_all
+    from downcut.toolpaths import build_all
 
     add(job, "profile", "em-125", [rectangle(50, 50, 100, 60)], side="outside", depth=19.0)
     paths = build_all(job)
@@ -286,7 +286,7 @@ def test_cut_deeper_than_flutes_warns(job):
 
 
 def test_cut_within_flutes_does_not_warn(job):
-    from kerfline.toolpaths import build_all
+    from downcut.toolpaths import build_all
 
     add(job, "profile", "em-250", [rectangle(50, 50, 100, 60)], side="outside", depth=19.0)
     assert build_all(job)[0].warnings == []

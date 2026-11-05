@@ -65,7 +65,7 @@ def post_for(job: Job, post_id: str) -> Post | PpPost:
     raise ValueError(f"Unknown machine post: {post_id}")
 
 
-def program(job: Job, paths: list[Toolpath], post_id: str, title: str = "Kerfline job", name: str = "") -> str:
+def program(job: Job, paths: list[Toolpath], post_id: str, title: str = "Downcut job", name: str = "") -> str:
     post = post_for(job, post_id)
     if isinstance(post, PpPost):
         return render_pp(post, job, paths, title, name or "job")
@@ -158,7 +158,7 @@ def group_by_tool(paths: list[Toolpath]) -> list[list[Toolpath]]:
     return groups
 
 
-def export(job: Job, paths: list[Toolpath], post_id: str, title: str = "kerfline-job") -> list[GcodeFile]:
+def export(job: Job, paths: list[Toolpath], post_id: str, title: str = "downcut-job") -> list[GcodeFile]:
     post = post_for(job, post_id)
     files = []
     groups = group_by_tool(paths)

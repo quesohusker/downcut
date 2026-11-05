@@ -57,7 +57,7 @@ window.platform = {
 
   readDraft() {
     try {
-      return localStorage.getItem('kerfline-draft');
+      return localStorage.getItem('downcut-draft') || localStorage.getItem('kerfline-draft');
     } catch {
       return null;
     }
@@ -65,7 +65,7 @@ window.platform = {
 
   writeDraft(text) {
     try {
-      localStorage.setItem('kerfline-draft', text);
+      localStorage.setItem('downcut-draft', text);
     } catch {
       return;
     }
@@ -73,7 +73,7 @@ window.platform = {
 
   readLibrary() {
     try {
-      return localStorage.getItem('kerfline-library');
+      return localStorage.getItem('downcut-library') || localStorage.getItem('kerfline-library');
     } catch {
       return null;
     }
@@ -81,7 +81,7 @@ window.platform = {
 
   writeLibrary(text) {
     try {
-      localStorage.setItem('kerfline-library', text);
+      localStorage.setItem('downcut-library', text);
     } catch {
       return;
     }

@@ -775,14 +775,14 @@ async function saveTemplate() {
   try {
     const ids = state.checked.size ? [...state.checked] : null;
     const template = await call('/api/template/make', { job: state.job, operation_ids: ids });
-    platform.saveTextFile(`${$('#job-title').value || 'toolpaths'}.kerflinetemplate`, JSON.stringify(template, null, 2));
+    platform.saveTextFile(`${$('#job-title').value || 'toolpaths'}.downcuttemplate`, JSON.stringify(template, null, 2));
   } catch (error) {
     say(error.message, true);
   }
 }
 
 async function applyTemplate() {
-  const file = await platform.openTextFile('.kerflinetemplate,.json');
+  const file = await platform.openTextFile('.downcuttemplate,.json');
   if (!file) return;
   try {
     const template = JSON.parse(file.text);

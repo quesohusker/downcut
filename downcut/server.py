@@ -21,7 +21,7 @@ def create_app() -> FastAPI:
     mimetypes.add_type("text/javascript", ".js")
     mimetypes.add_type("text/css", ".css")
     mimetypes.add_type("text/html", ".html")
-    app = FastAPI(title="Kerfline", docs_url=None, redoc_url=None, openapi_url=None)
+    app = FastAPI(title="Downcut", docs_url=None, redoc_url=None, openapi_url=None)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
 
     @app.exception_handler(ValueError)

@@ -4,7 +4,7 @@ from dataclasses import asdict
 
 from .model import Job, Operation, new_id
 
-FORMAT = "kerfline-template"
+FORMAT = "downcut-template"
 VERSION = 1
 
 
@@ -44,7 +44,7 @@ def make_template(job: Job, operation_ids: list[str] | None = None) -> dict:
 
 def apply_template(job: Job, template: dict, vector_ids: list[str] | None = None) -> list[Operation]:
     if template.get("format") != FORMAT:
-        raise ValueError("That is not a Kerfline toolpath template.")
+        raise ValueError("That is not a Downcut toolpath template.")
     by_id = {tool.id: tool for tool in job.tools}
     by_name = {tool.name: tool for tool in job.tools}
     missing = []

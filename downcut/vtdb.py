@@ -170,7 +170,7 @@ def read_vtdb(data: bytes) -> dict:
     if tapered:
         notes.append(f"{len(tapered)} tapered ball nose bits came in as ball nose bits. Their taper is not modeled.")
     if skipped_shape:
-        notes.append(f"{len(skipped_shape)} tools were skipped because Kerfline has no matching tool type.")
+        notes.append(f"{len(skipped_shape)} tools were skipped because Downcut has no matching tool type.")
     if skipped_data:
         notes.append(f"{len(skipped_data)} tools were skipped because feeds or speeds are missing.")
     if units_seen - {4}:

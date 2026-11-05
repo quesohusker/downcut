@@ -1,4 +1,4 @@
-# Kerfline
+# Downcut
 
 Free 2D and V-carve CAM for CNC routers, on Mac, Windows, and Linux.
 
@@ -8,26 +8,26 @@ Draw or import your art, build toolpaths, watch a simulated cut in 3D, and save 
 > **This is test software. Its author has not run it on a real CNC machine yet.**
 > Bad G-code can break bits, ruin material, damage machines, and hurt people. The checker cannot catch every mistake. Read every file, air-cut it above the material first, and keep a hand near the stop. Feeds and speeds are starting values only. You use this software at your own risk.
 
-![Kerfline 2D view with a sign job and its toolpaths](docs/images/kerfline-2d.jpg)
+![Downcut 2D view with a sign job and its toolpaths](docs/images/downcut-2d.jpg)
 
-![Kerfline 3D view of the simulated cut](docs/images/kerfline-3d.jpg)
+![Downcut 3D view of the simulated cut](docs/images/downcut-3d.jpg)
 
 ## Download
 
-Get the newest test build from the [Releases page](https://github.com/quesohusker/kerfline/releases).
+Get the newest test build from the [Releases page](https://github.com/quesohusker/downcut/releases).
 
 | System | File | How to start it |
 |---|---|---|
-| Mac, Apple silicon | `Kerfline-macOS-AppleSilicon.zip` | Unzip, then open Kerfline.app |
-| Mac, Intel | `Kerfline-macOS-Intel.zip` | Unzip, then open Kerfline.app |
-| Windows | `Kerfline-Windows.zip` | Unzip the whole folder, then run `Kerfline.exe` |
-| Linux, x86-64 | `Kerfline-Linux.tar.gz` | Unpack, then run `Kerfline/Kerfline` |
+| Mac, Apple silicon | `Downcut-macOS-AppleSilicon.zip` | Unzip, then open Downcut.app |
+| Mac, Intel | `Downcut-macOS-Intel.zip` | Unzip, then open Downcut.app |
+| Windows | `Downcut-Windows.zip` | Unzip the whole folder, then run `Downcut.exe` |
+| Linux, x86-64 | `Downcut-Linux.tar.gz` | Unpack, then run `Downcut/Downcut` |
 
-Kerfline starts a small local server and opens in your web browser. It uses no account and needs no internet. To stop it, use **File, Quit Kerfline**.
+Downcut starts a small local server and opens in your web browser. It uses no account and needs no internet. To stop it, use **File, Quit Downcut**.
 
 The builds are not signed, so your computer will warn you the first time:
 
-- **Mac:** Open Kerfline.app once and dismiss the warning. Then go to System Settings, Privacy & Security, and choose Open Anyway.
+- **Mac:** Open Downcut.app once and dismiss the warning. Then go to System Settings, Privacy & Security, and choose Open Anyway.
 - **Windows:** On the SmartScreen warning, choose More info, then Run anyway.
 
 `SHA256SUMS.txt` on the Releases page lets you check each download.
@@ -59,11 +59,11 @@ The builds are not signed, so your computer will warn you the first time:
 - Import a Vectric `.vtdb` tool database, with tools, feeds, materials, and bed size
 - Arc output (G2 and G3), keep-out zones, and an operator setup sheet
 
-See [FEATURES.md](FEATURES.md) for the full list and what is planned.
+See [FEATURES.md](FEATURES.md) for the full list and what is planned. Earlier test builds used the name Kerfline, and Downcut still opens those project files.
 
 ## The G-code checker
 
-Kerfline reads each finished G-code file with a separate checker before you can save it. The checker shares no code with the toolpath engine. It blocks a file that:
+Downcut reads each finished G-code file with a separate checker before you can save it. The checker shares no code with the toolpath engine. It blocks a file that:
 
 - Makes a rapid move below safe Z, or plunges into the material at rapid speed
 - Cuts below the bottom of the material, past your spoilboard allowance
@@ -91,7 +91,7 @@ Please tell us about:
 - Anything that worked differently from what you expected
 - Installs that failed on your computer
 
-Open a [test report](https://github.com/quesohusker/kerfline/issues/new?template=test-report.md).
+Open a [test report](https://github.com/quesohusker/downcut/issues/new?template=test-report.md).
 
 ## Known limits
 
@@ -99,7 +99,7 @@ Open a [test report](https://github.com/quesohusker/kerfline/issues/new?template
 - Each tool saves as its own file. Automatic tool changes in one file are not supported.
 - Rotary and laser toolpaths are not supported. Rotary `.pp` posts are refused.
 - Keep-out zones block a cut. Toolpaths do not route around them.
-- Bowl bits and tapered ball nose bits import in a simplified form, and Kerfline tells you when it does this.
+- Bowl bits and tapered ball nose bits import in a simplified form, and Downcut tells you when it does this.
 - EPS import reads common path commands only. AI files must be PDF compatible.
 - Run times ignore acceleration, so they run low.
 
@@ -108,29 +108,29 @@ Open a [test report](https://github.com/quesohusker/kerfline/issues/new?template
 You need Python 3.12 or later.
 
 ```bash
-git clone https://github.com/quesohusker/kerfline.git
-cd kerfline
+git clone https://github.com/quesohusker/downcut.git
+cd downcut
 python3 -m venv .venv
 .venv/bin/pip install -e ".[dev]"
-.venv/bin/python -m kerfline
+.venv/bin/python -m downcut
 ```
 
 On Windows, use `.venv\Scripts\python`. Run the tests with `.venv/bin/python -m pytest -q`.
 
 ## How it is built
 
-- `kerfline/toolpaths`: the toolpath engine. All values are in millimeters.
-- `kerfline/verify.py`: the G-code checker. It imports no toolpath code.
-- `kerfline/simulate.py`: cuts a height map from the G-code text.
-- `kerfline/ppfile.py` and `kerfline/vtdb.py`: Vectric post and tool file readers.
-- `kerfline/api.py` and `kerfline/server.py`: the local server, bound to 127.0.0.1.
-- `kerfline/web`: the browser interface.
+- `downcut/toolpaths`: the toolpath engine. All values are in millimeters.
+- `downcut/verify.py`: the G-code checker. It imports no toolpath code.
+- `downcut/simulate.py`: cuts a height map from the G-code text.
+- `downcut/ppfile.py` and `downcut/vtdb.py`: Vectric post and tool file readers.
+- `downcut/api.py` and `downcut/server.py`: the local server, bound to 127.0.0.1.
+- `downcut/web`: the browser interface.
 - `packaging`: the desktop builds.
 
 ## License and credits
 
-Kerfline uses the [PolyForm Strict License 1.0.0](LICENSE). You may use it for free for noncommercial purposes. The license gives no warranty. Third-party parts keep their own licenses, listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Downcut uses the [PolyForm Strict License 1.0.0](LICENSE). You may use it for free for noncommercial purposes. The license gives no warranty. Third-party parts keep their own licenses, listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 The Hershey Fonts were originally created by Dr. A. V. Hershey while working at the U. S. National Bureau of Standards. The format of the font data in this distribution was originally created by James Hurt, Cognition, Inc.
 
-Kerfline is not made by, endorsed by, or connected with Vectric Ltd. VCarve, Aspire, and Vectric are trademarks of their owner. Kerfline ships no Vectric files or artwork. You supply your own post and tool files.
+Downcut is not made by, endorsed by, or connected with Vectric Ltd. VCarve, Aspire, and Vectric are trademarks of their owner. Downcut ships no Vectric files or artwork. You supply your own post and tool files.

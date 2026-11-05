@@ -4,7 +4,7 @@ import re
 import pytest
 from fastapi.testclient import TestClient
 
-from kerfline.server import create_app
+from downcut.server import create_app
 
 
 @pytest.fixture(scope="module")
@@ -18,7 +18,7 @@ def sample(client):
 
 
 def test_page_and_assets_are_served(client):
-    assert "Kerfline" in client.get("/").text
+    assert "Downcut" in client.get("/").text
     assert client.get("/app.js").status_code == 200
     assert client.get("/style.css").headers["content-type"].startswith("text/css")
 
@@ -183,7 +183,7 @@ def test_mime_tables_do_not_touch_system_files(client):
 def test_font_scan_survives_blocked_folders(monkeypatch):
     from pathlib import Path
 
-    from kerfline import textvec
+    from downcut import textvec
 
     class Blocked:
         def rglob(self, _):

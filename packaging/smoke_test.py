@@ -42,13 +42,13 @@ def main(executable):
             except OSError:
                 time.sleep(1)
         else:
-            raise SystemExit("Kerfline did not start")
+            raise SystemExit("Downcut did not start")
         print("version:", boot["version"], "tools:", len(boot["tools"]), "fonts:", len(boot["fonts"]))
         assert len(boot["tools"]) >= 8, "The tool table is missing"
 
         with urllib.request.urlopen(BASE + "/", timeout=10) as response:
             page = response.read().decode()
-        assert "<title>Kerfline</title>" in page, "The page was not served"
+        assert "<title>Downcut</title>" in page, "The page was not served"
         with urllib.request.urlopen(BASE + "/style.css", timeout=10) as response:
             assert response.headers["content-type"].startswith("text/css"), "Wrong type for style.css"
         with urllib.request.urlopen(BASE + "/app.js", timeout=10) as response:

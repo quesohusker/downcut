@@ -1,12 +1,12 @@
 import numpy as np
 import pytest
 
-from kerfline.gcode import POSTS, export
-from kerfline.importers import import_dxf, import_svg, join_open
-from kerfline.model import MM_PER_IN, Material, Operation, Vector
-from kerfline.shapes import circle, rectangle
-from kerfline.toolpaths import build_all
-from kerfline.verify import Limits, check, limits_for
+from downcut.gcode import POSTS, export
+from downcut.importers import import_dxf, import_svg, join_open
+from downcut.model import MM_PER_IN, Material, Operation, Vector
+from downcut.shapes import circle, rectangle
+from downcut.toolpaths import build_all
+from downcut.verify import Limits, check, limits_for
 
 LIMITS = Limits(0, 100, 0, 100, 0, -10, 5)
 GOOD = """G90 G94 G17
@@ -122,7 +122,7 @@ def test_cut_order_survives_a_tool_change(job):
     job.operations.append(Operation("profile", "em-250", [edge.id], {"side": "outside", "depth": 19.0}))
     files = export(job, build_all(job), "grbl")
     assert [f.tool_id for f in files] == ["em-250", "vb-90", "em-250"]
-    assert [f.name[:5] for f in files] == ["kerfl", "kerfl", "kerfl"]
+    assert [f.name[:5] for f in files] == ["downc", "downc", "downc"]
     assert len({f.name for f in files}) == 3
 
 

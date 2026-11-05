@@ -5,11 +5,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from kerfline.gcode import export
-from kerfline.sample import sign_job
-from kerfline.simulate import render, simulate
-from kerfline.toolpaths import build_all
-from kerfline.verify import check, limits_for
+from downcut.gcode import export
+from downcut.sample import sign_job
+from downcut.simulate import render, simulate
+from downcut.toolpaths import build_all
+from downcut.verify import check, limits_for
 
 out = ROOT / "samples" / "output"
 out.mkdir(exist_ok=True)

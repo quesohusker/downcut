@@ -6,16 +6,16 @@ import numpy as np
 import pytest
 from shapely.geometry import LineString, Point
 
-from kerfline import api, inlay, shapes, templates, tiling, vtdb
-from kerfline.arcfit import ARC_CCW, ARC_CW, fit_arcs
-from kerfline.gcode import export
-from kerfline.geometry import polygon_from
-from kerfline.model import Material, Operation, Tool, Vector, job_from_dict, job_to_dict, new_layer
-from kerfline.ppfile import STARTER, format_number, parse_pp, PpVariable, render_pp
-from kerfline.simulate import simulate
-from kerfline.toolpaths import build_all
-from kerfline.toolpaths.base import CUT, RAPID
-from kerfline.verify import check, limits_for, parse
+from downcut import api, inlay, shapes, templates, tiling, vtdb
+from downcut.arcfit import ARC_CCW, ARC_CW, fit_arcs
+from downcut.gcode import export
+from downcut.geometry import polygon_from
+from downcut.model import Material, Operation, Tool, Vector, job_from_dict, job_to_dict, new_layer
+from downcut.ppfile import STARTER, format_number, parse_pp, PpVariable, render_pp
+from downcut.simulate import simulate
+from downcut.toolpaths import build_all
+from downcut.toolpaths.base import CUT, RAPID
+from downcut.verify import check, limits_for, parse
 
 
 def add(job, kind, tool_id, vectors, **params):
@@ -187,7 +187,7 @@ def test_fluting_ramps_in_and_out_and_reaches_depth(job, run):
 
 
 def test_smooth_fluting_uses_an_eased_ramp(job):
-    from kerfline.toolpaths.decor import flute_scale
+    from downcut.toolpaths.decor import flute_scale
 
     stations = np.array([0.0, 10.0, 20.0, 80.0, 100.0])
     linear = flute_scale(stations, 100.0, "both", 20.0, False)

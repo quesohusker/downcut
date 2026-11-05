@@ -107,7 +107,7 @@ const RUN_ACTIONS = {
   'layout-both': () => setLayout('both'),
   quit: async () => {
     await call('/api/shutdown', {});
-    document.body.textContent = 'Kerfline has stopped. You can close this tab.';
+    document.body.textContent = 'Downcut has stopped. You can close this tab.';
   },
   shortcuts: () => $('#shortcuts-dialog').showModal(),
   about: () => {

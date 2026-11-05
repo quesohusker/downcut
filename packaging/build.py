@@ -12,10 +12,10 @@ DIST = ROOT / "packaging" / "dist"
 
 def asset_name():
     if sys.platform == "darwin":
-        return "Kerfline-macOS-AppleSilicon.zip" if platform.machine() == "arm64" else "Kerfline-macOS-Intel.zip"
+        return "Downcut-macOS-AppleSilicon.zip" if platform.machine() == "arm64" else "Downcut-macOS-Intel.zip"
     if sys.platform.startswith("win"):
-        return "Kerfline-Windows.zip"
-    return "Kerfline-Linux.tar.gz"
+        return "Downcut-Windows.zip"
+    return "Downcut-Linux.tar.gz"
 
 
 def build():
@@ -33,7 +33,7 @@ def build():
             str(DIST),
             "--workpath",
             str(ROOT / "packaging" / "build"),
-            str(ROOT / "packaging" / "kerfline.spec"),
+            str(ROOT / "packaging" / "downcut.spec"),
         ],
         check=True,
     )
@@ -43,26 +43,26 @@ def package():
     target = DIST / asset_name()
     if sys.platform == "darwin":
         subprocess.run(
-            ["ditto", "-c", "-k", "--sequesterRsrc", "--keepParent", str(DIST / "Kerfline.app"), str(target)],
+            ["ditto", "-c", "-k", "--sequesterRsrc", "--keepParent", str(DIST / "Downcut.app"), str(target)],
             check=True,
         )
     elif sys.platform.startswith("win"):
         with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
-            for path in (DIST / "Kerfline").rglob("*"):
-                archive.write(path, Path("Kerfline") / path.relative_to(DIST / "Kerfline"))
+            for path in (DIST / "Downcut").rglob("*"):
+                archive.write(path, Path("Downcut") / path.relative_to(DIST / "Downcut"))
     else:
         with tarfile.open(target, "w:gz") as archive:
-            archive.add(DIST / "Kerfline", arcname="Kerfline")
+            archive.add(DIST / "Downcut", arcname="Downcut")
     print(target, round(target.stat().st_size / 1024 / 1024, 1), "MB")
     return target
 
 
 def executable():
     if sys.platform == "darwin":
-        return DIST / "Kerfline.app" / "Contents" / "MacOS" / "Kerfline"
+        return DIST / "Downcut.app" / "Contents" / "MacOS" / "Downcut"
     if sys.platform.startswith("win"):
-        return DIST / "Kerfline" / "Kerfline.exe"
-    return DIST / "Kerfline" / "Kerfline"
+        return DIST / "Downcut" / "Downcut.exe"
+    return DIST / "Downcut" / "Downcut"
 
 
 if __name__ == "__main__":

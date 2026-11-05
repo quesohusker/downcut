@@ -176,7 +176,7 @@ function changed() {
   renderLayers();
   renderOperations();
   draw();
-  platform.writeDraft(JSON.stringify({ format: 'kerfline', version: FILE_VERSION, job: state.job }));
+  platform.writeDraft(JSON.stringify({ format: 'downcut', version: FILE_VERSION, job: state.job }));
   scheduleCompute();
 }
 
@@ -1352,8 +1352,8 @@ async function openExport() {
 }
 
 async function saveProject() {
-  const text = JSON.stringify({ format: 'kerfline', version: FILE_VERSION, job: state.job });
-  platform.saveTextFile(`${$('#job-title').value || 'job'}.kerfline`, text);
+  const text = JSON.stringify({ format: 'downcut', version: FILE_VERSION, job: state.job });
+  platform.saveTextFile(`${$('#job-title').value || 'job'}.downcut`, text);
 }
 
 function loadJob(job) {
@@ -1386,11 +1386,11 @@ function mayReplaceJob() {
 
 async function openProject() {
   if (!(await mayReplaceJob())) return;
-  const file = await platform.openTextFile('.kerfline,.json');
+  const file = await platform.openTextFile('.downcut,.kerfline,.json');
   if (!file) return;
   try {
     const data = JSON.parse(file.text);
-    if (data.format !== 'kerfline') throw new Error('That is not a Kerfline project.');
+    if (!['downcut', 'kerfline'].includes(data.format)) throw new Error('That is not a Downcut project.');
     loadJob(data.job);
     say(`Opened ${file.name}`);
   } catch (error) {

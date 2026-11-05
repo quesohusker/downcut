@@ -1,4 +1,4 @@
-from kerfline.textvec import list_fonts
+from downcut.textvec import list_fonts
 
 PREFERRED = ("Arial Bold", "Liberation Sans Bold", "DejaVu Sans Bold", "Arial")
 

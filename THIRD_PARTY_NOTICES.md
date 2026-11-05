@@ -1,6 +1,6 @@
 # Third-party notices
 
-Kerfline's apps include the components below. Each keeps its own license, reproduced here as those licenses require. Kerfline's own license is in LICENSE.
+Downcut's apps include the components below. Each keeps its own license, reproduced here as those licenses require. Downcut's own license is in LICENSE.
 
 ## Hershey Fonts data
 

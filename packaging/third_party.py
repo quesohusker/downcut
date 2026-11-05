@@ -18,7 +18,7 @@ The format of the font data in this distribution was originally created by James
 
 def python_closure():
     env = default_environment()
-    seen, queue = {}, [("kerfline", ())]
+    seen, queue = {}, [("downcut", ())]
     while queue:
         name, extras = queue.pop()
         key = name.lower().replace("_", "-")
@@ -36,7 +36,7 @@ def python_closure():
             ):
                 continue
             queue.append((requirement.name, tuple(requirement.extras)))
-    return [dist for key, (dist, _) in sorted(seen.items()) if key != "kerfline"]
+    return [dist for key, (dist, _) in sorted(seen.items()) if key != "downcut"]
 
 
 def license_text(dist):
@@ -54,7 +54,7 @@ def main():
     parts = [
         "# Third-party notices",
         "",
-        "Kerfline's apps include the components below. Each keeps its own license, reproduced here as those licenses require. Kerfline's own license is in LICENSE.",
+        "Downcut's apps include the components below. Each keeps its own license, reproduced here as those licenses require. Downcut's own license is in LICENSE.",
         "",
         "## Hershey Fonts data",
         "",

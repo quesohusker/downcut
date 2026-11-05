@@ -6,9 +6,9 @@ from pypdf import PdfWriter
 from pypdf.generic import DecodedStreamObject, NameObject
 from shapely.geometry import Point, Polygon
 
-from kerfline import edit, exporters, importers, layout, nesting, shapes, textvec, validate
-from kerfline.geometry import line_of, polygon_from, region
-from kerfline.model import Vector
+from downcut import edit, exporters, importers, layout, nesting, shapes, textvec, validate
+from downcut.geometry import line_of, polygon_from, region
+from downcut.model import Vector
 from support import ARIAL
 
 

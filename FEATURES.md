@@ -1,7 +1,7 @@
-# Kerfline function list
+# Downcut function list
 
 Source: Vectric public pages for VCarve, Cut2D, Spark, and the compare table, read 5 Nov 2026 (VCarve and Cut2D pages show V12.5).
-Names here are ours. Kerfline uses no Vectric code, files, clipart, or artwork. The screen layout follows VCarve's workflow so it feels familiar, and every icon is our own drawing.
+Names here are ours. Downcut uses no Vectric code, files, clipart, or artwork. The screen layout follows VCarve's workflow so it feels familiar, and every icon is our own drawing.
 
 Status: **P1** and **P2** = built and tested, **P3** = later, **Skip** = no plan to build. Nothing has run on a real machine yet.
 

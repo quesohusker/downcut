@@ -33,9 +33,9 @@ TEXT = {
 }
 REFUSED = {
     "POST_BASE": "This post inherits from another post with POST_BASE. Import the full post it is based on.",
-    "ROTARY_WRAP_X": "This is a rotary post. Kerfline has no rotary toolpaths yet.",
-    "ROTARY_WRAP_Y": "This is a rotary post. Kerfline has no rotary toolpaths yet.",
-    "INVERSE_TIME_MODE": "This is a rotary post. Kerfline has no rotary toolpaths yet.",
+    "ROTARY_WRAP_X": "This is a rotary post. Downcut has no rotary toolpaths yet.",
+    "ROTARY_WRAP_Y": "This is a rotary post. Downcut has no rotary toolpaths yet.",
+    "INVERSE_TIME_MODE": "This is a rotary post. Downcut has no rotary toolpaths yet.",
 }
 IGNORED = {
     "PRINT_DIRECT", "DIRECT_OUTPUT", "RAPID_PLUNGE_TO_STARTZ", "RAPID_SPEED", "MAXIMUM_ROTATION",
@@ -189,9 +189,9 @@ def parse_pp(text: str, post_id: str = "pp") -> PpPost:
             elif key == "FIRST_TOOLPATH_NEW_SEGMENT":
                 post.first_new_segment = value.upper() == "YES"
             elif key == "LASER_SUPPORT":
-                post.notes.append("Laser sections were skipped. Kerfline has no laser toolpaths yet.")
+                post.notes.append("Laser sections were skipped. Downcut has no laser toolpaths yet.")
             elif key == "TAPE_SPLITTING":
-                post.notes.append("Tape splitting was skipped. Kerfline writes one file per tool.")
+                post.notes.append("Tape splitting was skipped. Downcut writes one file per tool.")
             elif key not in IGNORED:
                 post.notes.append(f"{key} was skipped.")
         except ValueError as error:
@@ -220,13 +220,13 @@ def _review(post: PpPost) -> None:
     else:
         code = "G20" if wants_inch else "G21"
         post.blocks.setdefault("HEADER", []).insert(0, code)
-        post.notes.append(f"The post set no units, so Kerfline added {code} to the header.")
+        post.notes.append(f"The post set no units, so Downcut added {code} to the header.")
     labels = set(TOKEN.findall(every))
     unknown = sorted(
         label for label in labels if not label.isdigit() and label not in NUMERIC and label not in TEXT
     )
     if unknown:
-        post.notes.append("Kerfline leaves these variables blank: " + ", ".join(f"[{v}]" for v in unknown) + ".")
+        post.notes.append("Downcut leaves these variables blank: " + ", ".join(f"[{v}]" for v in unknown) + ".")
     if not post.supports_arcs:
         post.notes.append("No usable arc sections, so this post writes straight moves only.")
 
@@ -329,7 +329,7 @@ class _Writer:
                 "FILE_NOTES": self.title,
                 "TIME": self.now.strftime("%H:%M:%S"),
                 "DATE": self.now.strftime("%m/%d/%Y"),
-                "PRODUCT": f"Kerfline {__version__}",
+                "PRODUCT": f"Downcut {__version__}",
                 "CUTTER_COMP": "",
             }
         )
@@ -523,7 +523,7 @@ def render_pp(post: PpPost, job: Job, paths: list[Toolpath], title: str, name: s
     return _Writer(post, job, paths, title, name).render(job.arc_output)
 
 
-STARTER = """+ Kerfline starter post. It uses the same format as a Vectric .pp file.
+STARTER = """+ Downcut starter post. It uses the same format as a Vectric .pp file.
 POST_NAME = "My machine (inch)(*.nc)"
 FILE_EXTENSION = "nc"
 UNITS = "INCHES"

@@ -39,7 +39,7 @@ def sign_job() -> Job:
     band_inner = offset([band_outer], -0.16 * IN, sharp=False)
 
     font = _font(["Georgia Bold", "Times New Roman Bold", "Arial Bold"])
-    title = text_vectors("KERFLINE", font["path"], 1.6 * IN, x=center, y=6.0 * IN, font_index=font["index"], tracking=4.0)
+    title = text_vectors("DOWNCUT", font["path"], 1.6 * IN, x=center, y=6.0 * IN, font_index=font["index"], tracking=4.0)
     _center_x(title, center)
     small = _font(["Arial Bold", "Georgia Bold"])
     subtitle = text_vectors("WOOD SIGNS", small["path"], 0.7 * IN, x=center, y=4.3 * IN, font_index=small["index"], tracking=9.0)

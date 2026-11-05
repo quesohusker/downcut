@@ -23,9 +23,9 @@ def draw():
 
 def main():
     image = draw()
-    image.save(HERE / "kerfline.png")
-    image.save(HERE / "kerfline.ico", sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
-    print("wrote kerfline.png and kerfline.ico")
+    image.save(HERE / "downcut.png")
+    image.save(HERE / "downcut.ico", sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
+    print("wrote downcut.png and downcut.ico")
 
 
 if __name__ == "__main__":
