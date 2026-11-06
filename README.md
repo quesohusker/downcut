@@ -5,7 +5,7 @@ Free 2D and V-carve CAM for CNC routers, on Mac, Windows, and Linux.
 Draw or import your art, build toolpaths, watch a simulated cut in 3D, and save G-code that a built-in checker has read first. If you have used VCarve, the screen will feel familiar. It also imports your Vectric post processors and tool databases.
 
 > [!WARNING]
-> **This is test software. Its author has not run it on a real CNC machine yet.**
+> **This is test software.**
 > Bad G-code can break bits, ruin material, damage machines, and hurt people. The checker cannot catch every mistake. Read every file, air-cut it above the material first, and keep a hand near the stop. Feeds and speeds are starting values only. You use this software at your own risk.
 
 ![Downcut 2D view with a sign job and its toolpaths](docs/images/downcut-2d.jpg)

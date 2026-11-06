@@ -3,7 +3,7 @@
 Source: Vectric public pages for VCarve, Cut2D, Spark, and the compare table, read 5 Nov 2026 (VCarve and Cut2D pages show V12.5).
 Names here are ours. Downcut uses no Vectric code, files, clipart, or artwork. The screen layout follows VCarve's workflow so it feels familiar, and every icon is our own drawing.
 
-Status: **P1** and **P2** = built and tested, **P3** = later, **Skip** = no plan to build. Nothing has run on a real machine yet.
+Status: **P1** and **P2** = built and tested, **P3** = later, **Skip** = no plan to build.
 
 Edition notes come from Vectric's compare table. "Pro only" means Cut2D Pro and VCarve Pro have it and the Desktop editions do not. Most functions are not tied to an edition on Vectric's pages, so those rows have no note.
 

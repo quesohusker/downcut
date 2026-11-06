@@ -51,5 +51,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 || \
-            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --prerelease --title "Downcut ${GITHUB_REF_NAME#v} test build" --notes "Test build. It has not been run on a real CNC machine by its author. Read the warning and the install steps in the README."
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --prerelease --title "Downcut ${GITHUB_REF_NAME#v} test build" --notes "Test build. Read the warning and the install steps in the README."
           gh release upload "$GITHUB_REF_NAME" assets/* --repo "$GITHUB_REPOSITORY" --clobber

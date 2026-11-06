@@ -3,7 +3,7 @@
 Downcut is free 2D and V-carve CAM for CNC routers. This guide covers every part of the program.
 
 > [!WARNING]
-> **Downcut is test software. Its author has not run it on a real CNC machine yet.** Bad G-code can break bits, ruin material, damage machines, and hurt people. Read every file, air-cut it above the material first, and keep a hand near the stop. Feeds and speeds are starting values only.
+> **Downcut is test software.** Bad G-code can break bits, ruin material, damage machines, and hurt people. Read every file, air-cut it above the material first, and keep a hand near the stop. Feeds and speeds are starting values only.
 
 ## Contents
 
